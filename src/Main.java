@@ -1,29 +1,36 @@
-import controller.Managers;
-import controller.inmemory.InMemoryHistoryManager;
-import controller.managers.TaskManager;
+import managers.FileBackedTaskManager;
+import managers.HistoryManager;
+import managers.Managers;
+import managers.TaskManager;
 import model.Epic;
 import model.Subtask;
 import model.Task;
 
+import java.io.File;
+
 public class Main {
     public static void main(String[] args) {
         TaskManager taskManager = Managers.getDefault();
+        HistoryManager historyManager = Managers.getDefaultHistory();
+        FileBackedTaskManager backedTaskManager = new FileBackedTaskManager(System.getProperty("user.dir") + "/src/" + "fileHistory.csv");
 
-        taskManager.addTask(new Task("First", "One"));
-        taskManager.addTask(new Task("Twice", "Two"));
-        taskManager.addTask(new Epic("Two", "Two epic"));
-        taskManager.addSubtask(new Subtask("SubOne", "Hello"), "Two");
-        taskManager.addSubtask(new Subtask("SubTwo", "Hello"), "Two");
-        taskManager.addTask(new Epic("Three", "Three epic"));
-        taskManager.addSubtask(new Subtask("SubThree", "Hello"), "Two");
+        backedTaskManager.addTask(new Task("First", "One"));
+        backedTaskManager.addTask(new Task("Twice", "Two"));
+        backedTaskManager.addTask(new Epic("Two", "Two epic"));
+        backedTaskManager.addSubtask(new Subtask("SubOne", "Hello"), "Two");
+        backedTaskManager.addSubtask(new Subtask("SubTwo", "Hello"), "Two");
 
-        taskManager.getEpics();
-        taskManager.getTasks();
-        taskManager.getSubtasks();
-        taskManager.getTasks();
-        System.out.println(Managers.getDefaultHistory().getHistory());
-        InMemoryHistoryManager.historyTasks.remove(3);
+        backedTaskManager.getTasks();
+        backedTaskManager.getSubtasks();
+        backedTaskManager.getEpics();
+        System.out.println(backedTaskManager.historyManager.getHistory());
 
-        System.out.println(Managers.getDefaultHistory().getHistory());
+        FileBackedTaskManager newBack = FileBackedTaskManager.loadFromFile(new File(System.getProperty("user.dir") + "/src/" + "fileHistory.csv"));
+        System.out.println(newBack.historyManager.getHistory());
+        System.out.println(newBack.getEpics());
+        System.out.println(newBack.getTasks());
+        System.out.println(newBack.getSubtasks());
+
     }
 }
+

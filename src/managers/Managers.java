@@ -1,9 +1,4 @@
-package controller;
-
-import controller.inmemory.InMemoryHistoryManager;
-import controller.inmemory.InMemoryTaskManager;
-import controller.managers.HistoryManager;
-import controller.managers.TaskManager;
+package managers;
 
 public class Managers {
     public static TaskManager getDefault() {

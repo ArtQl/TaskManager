@@ -1,4 +1,4 @@
-package controller.inmemory;
+package managers;
 
 import model.Epic;
 import model.Task;
@@ -6,6 +6,7 @@ import model.Task;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class HistoryLinkedList<T extends Task> {
     private static final int MAX_SIZE = 10;
@@ -72,7 +73,7 @@ public class HistoryLinkedList<T extends Task> {
     public void remove(Node<T> node) {
         if (node == null) return;
 
-        if(node.getData() instanceof Epic epic && epic.getSubtaskList() != null) {
+        if (node.getData() instanceof Epic epic && epic.getSubtaskList() != null) {
             for (Integer id : epic.getSubtaskList().keySet()) {
                 remove(id);
             }
@@ -90,10 +91,70 @@ public class HistoryLinkedList<T extends Task> {
 
     public void remove(int id) {
         Node<T> node = historyMap.get(id);
-        if(node != null) {
+        if (node != null) {
             remove(node);
         } else {
             System.out.println("ID not founded");
         }
+    }
+}
+
+class Node<T> {
+    private final T data;
+    private Node<T> next;
+    private Node<T> prev;
+
+    public Node(T data) {
+        this.data = data;
+        this.next = null;
+        this.prev = null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Node<?> node = (Node<?>) o;
+
+        if (!Objects.equals(data, node.data))
+            return false;
+        if (!Objects.equals(next, node.next))
+            return false;
+        return Objects.equals(prev, node.prev);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = data != null ? data.hashCode() : 0;
+        result = 31 * result + (next != null ? next.hashCode() : 0);
+        result = 31 * result + (prev != null ? prev.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "managers.Node{" + data +
+                '}';
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public Node<T> getNext() {
+        return next;
+    }
+
+    public Node<T> getPrev() {
+        return prev;
+    }
+
+    public void setPrev(Node<T> prev) {
+        this.prev = prev;
+    }
+
+    public void setNext(Node<T> next) {
+        this.next = next;
     }
 }

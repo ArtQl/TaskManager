@@ -1,7 +1,5 @@
-package controller.inmemory;
+package managers;
 
-import controller.Managers;
-import controller.managers.TaskManager;
 import model.Epic;
 import model.Subtask;
 import model.Task;
@@ -10,15 +8,21 @@ import model.TaskStatus;
 import java.util.HashMap;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final HashMap<Integer, Task> tasks;
-    private final HashMap<Integer, Subtask> subtasks;
-    private final HashMap<Integer, Epic> epics;
+    protected final HashMap<Integer, Task> tasks;
+    protected final HashMap<Integer, Subtask> subtasks;
+    protected final HashMap<Integer, Epic> epics;
     private static int id;
+    public final HistoryManager historyManager;
 
     public InMemoryTaskManager() {
         this.tasks = new HashMap<>();
         this.subtasks = new HashMap<>();
         this.epics = new HashMap<>();
+        this.historyManager = new InMemoryHistoryManager();
+    }
+
+    public Task getLastTask() {
+        return getTaskById(id);
     }
 
     @Override
@@ -90,6 +94,7 @@ public class InMemoryTaskManager implements TaskManager {
             epics.get(subtasks.get(id).getIdEpic()).getSubtaskList().remove(id);
             subtasks.remove(id);
         }
+        historyManager.remove(id);
         updateStatus();
     }
 
@@ -103,7 +108,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public HashMap<Integer, Task> getTasks() {
         for (Task task : tasks.values()) {
-            Managers.getDefaultHistory().add(task);
+            historyManager.add(task);
         }
         return tasks;
     }
@@ -111,7 +116,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public HashMap<Integer, Subtask> getSubtasks() {
         for (Subtask subtask : subtasks.values()) {
-            Managers.getDefaultHistory().add(subtask);
+            historyManager.add(subtask);
         }
         return subtasks;
     }
@@ -119,15 +124,17 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public HashMap<Integer, Epic> getEpics() {
         for (Epic epic : epics.values()) {
-            Managers.getDefaultHistory().add(epic);
+            historyManager.add(epic);
         }
         return epics;
     }
 
+    @Override
     public HashMap<Integer, Subtask> getSubtasksOfEpic(int id) {
         return epics.get(id) != null ? epics.get(id).getSubtaskList() : null;
     }
 
+    @Override
     public Epic getEpicByTitle(String title) {
         for (Epic epic : epics.values()) {
             if (epic.getTitle().equals(title)) return epic;

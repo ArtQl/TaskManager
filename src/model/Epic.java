@@ -1,13 +1,17 @@
 package model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class Epic extends Task {
-    private final HashMap<Integer, Subtask> subtaskList;
+public class Epic extends Task implements Serializable {
+    private final HashMap<Integer, Subtask> subtaskList = new HashMap<>();
 
     public Epic(String title, String description) {
         super(title, description);
-        this.subtaskList = new HashMap<>();
+    }
+
+    public Epic(int id, String title, String description, TaskStatus status) {
+        super(id, title, description, status);
     }
 
     public HashMap<Integer, Subtask> getSubtaskList() {
@@ -16,13 +20,5 @@ public class Epic extends Task {
 
     public void addSubtask(Subtask subtask) {
         subtaskList.put(subtask.getId(), subtask);
-    }
-
-    @Override
-    public String toString() {
-        return "Epic{" +
-                "id=" + id +
-                ", status='" + status + '\'' +
-                '}';
     }
 }

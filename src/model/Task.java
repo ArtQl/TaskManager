@@ -1,8 +1,11 @@
 package model;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-public class Task {
+public class Task implements Serializable {
     protected int id;
     protected String title;
     protected String description;
@@ -13,6 +16,13 @@ public class Task {
         this.title = title;
         this.description = description;
         this.status = TaskStatus.NEW;
+    }
+
+    public Task(int id, String title, String description, TaskStatus status) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.status = status;
     }
 
     public Task(String title, String description, TaskStatus status) {
@@ -55,10 +65,13 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", status='" + status + '\'' +
-                '}';
+        List<String> list = new ArrayList<>();
+        list.add(Integer.toString(id));
+        list.add(getClass().getSimpleName().toUpperCase());
+        list.add(title);
+        list.add(status.toString());
+        list.add(description);
+        return String.join(",", list);
     }
 
     public void setStatus(TaskStatus status) {
@@ -75,5 +88,9 @@ public class Task {
 
     public String getTitle() {
         return title;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
