@@ -1,4 +1,4 @@
-package managers;
+package managers.history;
 
 import model.Epic;
 import model.Task;
@@ -134,7 +134,7 @@ class Node<T> {
 
     @Override
     public String toString() {
-        return "managers.Node{" + data +
+        return "managers.history.Node{" + data +
                 '}';
     }
 

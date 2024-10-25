@@ -1,5 +1,5 @@
-import managers.FileBackedTaskManager;
-import managers.HistoryManager;
+import managers.backed.FileBackedTaskManager;
+import managers.history.HistoryManager;
 import managers.Managers;
 import managers.TaskManager;
 import model.Epic;

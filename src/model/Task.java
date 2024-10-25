@@ -1,5 +1,7 @@
 package model;
 
+import managers.memory.InMemoryTaskManager;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +14,6 @@ public class Task implements Serializable {
     protected TaskStatus status;
 
     public Task(String title, String description) {
-        this.id = 0;
         this.title = title;
         this.description = description;
         this.status = TaskStatus.NEW;
@@ -26,7 +27,6 @@ public class Task implements Serializable {
     }
 
     public Task(String title, String description, TaskStatus status) {
-        this.id = 0;
         this.title = title;
         this.description = description;
         this.status = switch (status) {
@@ -34,6 +34,10 @@ public class Task implements Serializable {
             case IN_PROGRESS -> TaskStatus.IN_PROGRESS;
             case DONE -> TaskStatus.DONE;
         };
+    }
+
+    public void setId() {
+        this.id = ++InMemoryTaskManager.id;
     }
 
     public void setId(int id) {

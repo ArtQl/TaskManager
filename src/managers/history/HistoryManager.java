@@ -1,4 +1,4 @@
-package managers;
+package managers.history;
 
 import model.Task;
 
