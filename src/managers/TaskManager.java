@@ -9,17 +9,15 @@ import java.util.HashMap;
 public interface TaskManager {
     void addTask(Task task);
 
-    void updateTask(int id, Task task);
+    void updateTask(Task task);
 
-    void deleteAllTasks();
+    void removeAllTasks();
 
-    void deleteTaskById(int id);
+    void removeTaskById(int id);
 
     Task getTaskById(int id);
 
-    void updateStatus();
-
-    void addSubtask(Subtask subtask, String titleEpic);
+    void updateStatus(int idEpic);
 
     HashMap<Integer, Subtask> getSubtasks();
 
@@ -28,7 +26,5 @@ public interface TaskManager {
     HashMap<Integer, Epic> getEpics();
 
     HashMap<Integer, Subtask> getSubtasksOfEpic(int id);
-
-    Epic getEpicByTitle(String title);
 
 }

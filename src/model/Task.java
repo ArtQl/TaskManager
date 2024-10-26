@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Task implements Serializable {
-    protected int id;
+    protected Integer id;
     protected String title;
     protected String description;
     protected TaskStatus status;
@@ -23,7 +23,11 @@ public class Task implements Serializable {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.status = status;
+        this.status = switch (status) {
+            default -> TaskStatus.NEW;
+            case IN_PROGRESS -> TaskStatus.IN_PROGRESS;
+            case DONE -> TaskStatus.DONE;
+        };
     }
 
     public Task(String title, String description, TaskStatus status) {
@@ -40,7 +44,7 @@ public class Task implements Serializable {
         this.id = ++InMemoryTaskManager.id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -82,7 +86,7 @@ public class Task implements Serializable {
         this.status = status;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
