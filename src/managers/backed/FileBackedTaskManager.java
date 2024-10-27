@@ -98,14 +98,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         String[] newStr = str.split(",");
         int id = Integer.parseInt(newStr[0]);
         String title = newStr[2];
-        TaskStatus taskStatus = TaskStatus.valueOf(newStr[3]);
         String description = newStr[4];
 
         return switch (newStr[1]) {
-            case "EPIC" -> new Epic(id, title, description, taskStatus);
+            case "EPIC" -> new Epic(id, title, description, TaskStatus.valueOf(newStr[3]));
             case "SUBTASK" ->
-                    new Subtask(id, title, description, taskStatus, Integer.parseInt(newStr[5]));
-            default -> new Task(id, title, description, taskStatus);
+                    new Subtask(id, title, description, TaskStatus.valueOf(newStr[3]), Integer.parseInt(newStr[5]));
+            default -> new Task(id, title, description, TaskStatus.valueOf(newStr[3]));
         };
     }
 

@@ -16,10 +16,6 @@ public class InMemoryTaskManager implements TaskManager {
     public static int id;
     public final HistoryManager historyManager = new InMemoryHistoryManager();
 
-    public Task getLastTask() {
-        return getTaskById(id);
-    }
-
     @Override
     public void addTask(Task task) {
         if (task.getId() != null) {
@@ -99,7 +95,7 @@ public class InMemoryTaskManager implements TaskManager {
             updateStatus(subtask.getIdEpic());
         }
         tasks.remove(id);
-        historyManager.remove(id);
+        if (!historyManager.getHistory().isEmpty()) historyManager.remove(id);
     }
 
     @Override
@@ -147,7 +143,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public HashMap<Integer, Subtask> getSubtasksOfEpic(int id) {
-        return tasks.get(id) != null ? ((Epic) tasks.get(id)).getSubtaskList() : null;
+        return tasks.get(id) != null &&
+                tasks.get(id) instanceof Epic ?
+                ((Epic) tasks.get(id)).getSubtaskList() : null;
     }
 
     public Epic getEpicByTitle(String title) {
@@ -164,18 +162,19 @@ public class InMemoryTaskManager implements TaskManager {
             epic.setStatus(TaskStatus.NEW);
             return;
         }
-        int completedSubtasks = 0;
-        int progressSubtasks = 0;
+        boolean hasDone = false;
+        boolean hasInProgress = false;
         for (Subtask value : epic.getSubtaskList().values()) {
             if (value.getStatus().equals(TaskStatus.DONE)) {
-                completedSubtasks++;
+                hasDone = true;
             } else {
-                progressSubtasks++;
+                hasInProgress = true;
             }
+            if (hasDone && hasInProgress) break;
         }
-        if (completedSubtasks == epic.getSubtaskList().size()) {
+        if (hasDone && !hasInProgress) {
             epic.setStatus(TaskStatus.DONE);
-        } else if (completedSubtasks > 0 || progressSubtasks > 0) {
+        } else if (hasDone || hasInProgress) {
             epic.setStatus(TaskStatus.IN_PROGRESS);
         } else {
             epic.setStatus(TaskStatus.NEW);

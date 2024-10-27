@@ -9,8 +9,8 @@ import java.util.Objects;
 
 public class Task implements Serializable {
     protected Integer id;
-    protected String title;
-    protected String description;
+    protected final String title;
+    protected final String description;
     protected TaskStatus status;
 
     public Task(String title, String description) {
@@ -43,11 +43,6 @@ public class Task implements Serializable {
     public void setId() {
         this.id = ++InMemoryTaskManager.id;
     }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
 
     @Override
     public boolean equals(Object o) {
