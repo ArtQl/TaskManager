@@ -1,18 +1,19 @@
 package model;
 
+import managers.memory.InMemoryTaskManager;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class Task implements Serializable {
-    protected int id;
-    protected String title;
-    protected String description;
+    protected Integer id;
+    protected final String title;
+    protected final String description;
     protected TaskStatus status;
 
     public Task(String title, String description) {
-        this.id = 0;
         this.title = title;
         this.description = description;
         this.status = TaskStatus.NEW;
@@ -22,11 +23,14 @@ public class Task implements Serializable {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.status = status;
+        this.status = switch (status) {
+            default -> TaskStatus.NEW;
+            case IN_PROGRESS -> TaskStatus.IN_PROGRESS;
+            case DONE -> TaskStatus.DONE;
+        };
     }
 
     public Task(String title, String description, TaskStatus status) {
-        this.id = 0;
         this.title = title;
         this.description = description;
         this.status = switch (status) {
@@ -36,10 +40,9 @@ public class Task implements Serializable {
         };
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setId() {
+        this.id = ++InMemoryTaskManager.id;
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -78,7 +81,7 @@ public class Task implements Serializable {
         this.status = status;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

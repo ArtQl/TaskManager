@@ -1,5 +1,7 @@
-package managers;
+package managers.backed;
 
+import managers.history.InMemoryHistoryManager;
+import managers.memory.InMemoryTaskManager;
 import model.Epic;
 import model.Subtask;
 import model.Task;
@@ -21,20 +23,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
             } catch (IOException e) {
                 System.out.println("Не удалось создать файл");
             }
-        } else {
-            loadFromFile(file);
         }
     }
 
     @Override
     public void addTask(Task task) {
         super.addTask(task);
-        save();
-    }
-
-    @Override
-    public void addSubtask(Subtask subtask, String titleEpic) {
-        super.addSubtask(subtask, titleEpic);
         save();
     }
 
@@ -63,8 +57,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             bw.write("id,type,name,status,description,epic\n");
             writeTasks(bw);
-            writeEpics(bw);
-            writeSubtask(bw);
             bw.newLine();
             bw.write(InMemoryHistoryManager.toString(historyManager));
         } catch (IOException e) {
@@ -80,21 +72,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         }
     }
 
-    private void writeEpics(BufferedWriter bw) throws IOException {
-        if (!epics.isEmpty()) {
-            for (Epic epic : epics.values()) {
-                bw.write(epic.toString() + "\n");
-            }
-        }
-    }
-
-    private void writeSubtask(BufferedWriter bw) throws IOException {
-        if (!subtasks.isEmpty()) {
-            for (Subtask subtask : subtasks.values()) {
-                bw.write(subtask.toString() + "\n");
-            }
-        }
-    }
 //    private void writeHistory(BufferedWriter bw) throws IOException {
 //        if (!historyManager.getHistory().isEmpty()) {
 //            for (Task task : historyManager.getHistory()) {
@@ -121,14 +98,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         String[] newStr = str.split(",");
         int id = Integer.parseInt(newStr[0]);
         String title = newStr[2];
-        TaskStatus taskStatus = TaskStatus.valueOf(newStr[3]);
         String description = newStr[4];
 
         return switch (newStr[1]) {
-            case "EPIC" -> new Epic(id, title, description, taskStatus);
+            case "EPIC" -> new Epic(id, title, description, TaskStatus.valueOf(newStr[3]));
             case "SUBTASK" ->
-                    new Subtask(id, title, description, taskStatus, Integer.parseInt(newStr[5]));
-            default -> new Task(id, title, description, taskStatus);
+                    new Subtask(id, title, description, TaskStatus.valueOf(newStr[3]), Integer.parseInt(newStr[5]));
+            default -> new Task(id, title, description, TaskStatus.valueOf(newStr[3]));
         };
     }
 
@@ -150,10 +126,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
     private void addTaskFromString(String str) {
         Task task = fromString(str);
         if (task instanceof Epic epic) {
-            epics.put(epic.getId(), epic);
+            tasks.put(epic.getId(), epic);
         } else if (task instanceof Subtask subtask) {
-            epics.get(subtask.getIdEpic()).addSubtask(subtask);
-            subtasks.put(subtask.getId(),subtask);
+            ((Epic) tasks.get(subtask.getIdEpic())).addSubtask(subtask);
+            tasks.put(subtask.getId(),subtask);
         } else {
             tasks.put(task.getId(), task);
         }
@@ -161,11 +137,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
 
     private void restoreHistory(List<Integer> ids) {
         for (Integer id : ids) {
-            if (tasks.containsKey(id))
-                historyManager.add(tasks.get(id));
-            else if (epics.containsKey(id))
-                historyManager.add(epics.get(id));
-            else historyManager.add(subtasks.get(id));
+            if (tasks.containsKey(id)) historyManager.add(tasks.get(id));
         }
     }
 
