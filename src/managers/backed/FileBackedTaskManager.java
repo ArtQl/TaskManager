@@ -1,5 +1,6 @@
 package managers.backed;
 
+import managers.history.HistoryManager;
 import managers.history.InMemoryHistoryManager;
 import managers.memory.InMemoryTaskManager;
 import model.Epic;
@@ -15,7 +16,8 @@ import java.util.List;
 public class FileBackedTaskManager extends InMemoryTaskManager implements Serializable {
     private final File file;
 
-    public FileBackedTaskManager(String filePath) {
+    public FileBackedTaskManager(String filePath, HistoryManager historyManager) {
+        super(historyManager);
         this.file = new File(filePath);
         if (!file.exists()) {
             try {
@@ -108,8 +110,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         };
     }
 
-    public static FileBackedTaskManager loadFromFile(File file) {
-        FileBackedTaskManager fileBacked = new FileBackedTaskManager(file.getPath());
+    public static FileBackedTaskManager loadFromFile(File file, HistoryManager historyManager) {
+        FileBackedTaskManager fileBacked = new FileBackedTaskManager(file.getPath(), historyManager);
         List<String> tasksStr = fileBacked.readFile();
 
         if(!tasksStr.isEmpty()) {

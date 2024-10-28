@@ -12,8 +12,7 @@ import java.io.File;
 public class Main {
     public static void main(String[] args) {
         TaskManager taskManager = Managers.getDefault();
-        HistoryManager historyManager = Managers.getDefaultHistory();
-        FileBackedTaskManager backedTaskManager = new FileBackedTaskManager(System.getProperty("user.dir") + "/src/" + "fileHistory.csv");
+        FileBackedTaskManager backedTaskManager = new FileBackedTaskManager(System.getProperty("user.dir") + "/src/" + "fileHistory.csv", Managers.getDefaultHistory());
 
         backedTaskManager.addTask(new Task("First", "One"));
         backedTaskManager.addTask(new Task("Twice", "Two"));
@@ -25,18 +24,18 @@ public class Main {
         backedTaskManager.updateTask(new Subtask(5, "SubOne","Hello",TaskStatus.DONE, 3));
 //        backedTaskManager.removeTaskById(4);
         backedTaskManager.removeTaskById(5);
+
         System.out.println(backedTaskManager.getTasks());
         System.out.println(backedTaskManager.getSubtasks());
         System.out.println(backedTaskManager.getEpics());
-
         System.out.println(backedTaskManager.historyManager.getHistory());
         System.out.println("///////////////////////");
 
-        FileBackedTaskManager newBack = FileBackedTaskManager.loadFromFile(new File(System.getProperty("user.dir") + "/src/" + "fileHistory.csv"));
+        FileBackedTaskManager newBack = FileBackedTaskManager.loadFromFile(new File(System.getProperty("user.dir") + "/src/" + "fileHistory.csv"), Managers.getDefaultHistory());
         System.out.println(newBack.historyManager.getHistory());
-        System.out.println(newBack.getEpics());
         System.out.println(newBack.getTasks());
         System.out.println(newBack.getSubtasks());
+        System.out.println(newBack.getEpics());
 
     }
 }

@@ -4,4 +4,4 @@ id,type,name,status,description,epic
 3,EPIC,Two,IN_PROGRESS,Two epic
 4,SUBTASK,SubOne,IN_PROGRESS,Hello,3
 
-3,1,2,4,
+1,2,3,

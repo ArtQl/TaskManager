@@ -14,7 +14,11 @@ import java.util.Map;
 public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Task> tasks = new HashMap<>();
     public static int id;
-    public final HistoryManager historyManager = new InMemoryHistoryManager();
+    public final HistoryManager historyManager;
+
+    public InMemoryTaskManager(HistoryManager historyManager) {
+        this.historyManager = historyManager;
+    }
 
     @Override
     public void addTask(Task task) {
