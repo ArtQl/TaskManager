@@ -1,11 +1,13 @@
 package managers;
 
+import managers.history.HistoryManager;
 import model.Epic;
 import model.Subtask;
 import model.Task;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface TaskManager {
     void addTask(Task task);
@@ -25,5 +27,13 @@ public interface TaskManager {
     List<Epic> getEpics();
 
     HashMap<Integer, Subtask> getSubtasksOfEpic(int id);
+
+    void removeTasks();
+    void removeSubtasks();
+    void removeEpics();
+
+    Map<Integer, Task> getMapTasks();
+
+    HistoryManager getHistoryManager();
 
 }
