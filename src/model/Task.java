@@ -1,7 +1,5 @@
 package model;
 
-import managers.memory.InMemoryTaskManager;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +38,8 @@ public class Task implements Serializable {
         };
     }
 
-    public void setId() {
-        this.id = ++InMemoryTaskManager.id;
+    public void setId(int id) {
+        this.id = id;
     }
 
     @Override
