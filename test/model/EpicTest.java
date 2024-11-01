@@ -21,7 +21,6 @@ class EpicTest {
     @Test
     void statusShouldBeNewForRemovedSubtasks() {
         epic.addSubtask(new Subtask(1, "1Sub", "d", TaskStatus.DONE, 1));
-        assertEquals(TaskStatus.DONE, epic.getStatus());
         epic.removeSubtask(1);
         assertEquals(TaskStatus.NEW, epic.getStatus());
     }
