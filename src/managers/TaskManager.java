@@ -17,8 +17,6 @@ public interface TaskManager {
 
     Task getTaskById(int id);
 
-    void updateStatus(int idEpic);
-
     HashMap<Integer, Subtask> getSubtasks();
 
     HashMap<Integer, Task> getTasks();
