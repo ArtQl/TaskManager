@@ -35,22 +35,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
     }
 
     @Override
-    public HashMap<Integer, Task> getTasks() {
-        HashMap<Integer, Task> map = super.getTasks();
+    public List<Task> getTasks() {
+        List<Task> map = super.getTasks();
         save();
         return map;
     }
 
     @Override
-    public HashMap<Integer, Subtask> getSubtasks() {
-        HashMap<Integer, Subtask> map = super.getSubtasks();
+    public List<Subtask> getSubtasks() {
+        List<Subtask> map = super.getSubtasks();
         save();
         return map;
     }
 
     @Override
-    public HashMap<Integer, Epic> getEpics() {
-        HashMap<Integer, Epic> map = super.getEpics();
+    public List<Epic> getEpics() {
+        List<Epic> map = super.getEpics();
         save();
         return map;
     }
