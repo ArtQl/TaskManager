@@ -1,7 +1,6 @@
 package managers.backed;
 
 import managers.history.HistoryManager;
-import managers.history.InMemoryHistoryManager;
 import managers.memory.InMemoryTaskManager;
 import model.Epic;
 import model.Subtask;
@@ -10,6 +9,7 @@ import model.TaskStatus;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements Serializable {
@@ -20,7 +20,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         this.file = new File(filePath);
         if (!file.exists()) {
             try {
-                file.createNewFile();
+                if (file.createNewFile())
+                    System.out.println("File created");
+                ;
             } catch (IOException e) {
                 System.out.println("Не удалось создать файл");
             }
@@ -55,90 +57,84 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
     }
 
     public void save() throws ManagerSaveException {
+        if (tasks.isEmpty()) throw new ManagerSaveException("Tasks are empty");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             bw.write("id,type,name,status,description,epic\n");
-            writeTasks(bw);
+            for (Task task : tasks.values()) bw.write(task + "\n");
             bw.newLine();
-            bw.write(InMemoryHistoryManager.toString(historyManager));
+            if (!historyManager.getHistory().isEmpty()) {
+                for (Task task : historyManager.getHistory())
+                    bw.write(task.getId() + ",");
+            }
         } catch (IOException e) {
             throw new ManagerSaveException("Error saving data: " + e.getMessage(), e);
         }
     }
 
-    private void writeTasks(BufferedWriter bw) throws IOException {
-        if (!tasks.isEmpty()) {
-            for (Task task : tasks.values()) {
-                bw.write(task.toString() + "\n");
-            }
+    public Task getTaskFromString(String str) {
+        String[] parts = str.trim().split(",");
+        if (parts.length < 5 || parts.length > 7)
+            throw new IllegalArgumentException("Wrong str length");
+
+        try {
+            int id = Integer.parseInt(parts[0]);
+            String title = parts[2];
+            String description = parts[4];
+            TaskStatus taskStatus = TaskStatus.valueOf(parts[3]);
+            return switch (parts[1]) {
+                case "EPIC" -> new Epic(id, title, description, taskStatus);
+                case "SUBTASK" ->
+                        new Subtask(id, title, description, taskStatus, Integer.parseInt(parts[5]));
+                default -> new Task(id, title, description, taskStatus);
+            };
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Error parsing data from string");
         }
-    }
-
-//    private void writeHistory(BufferedWriter bw) throws IOException {
-//        if (!historyManager.getHistory().isEmpty()) {
-//            for (Task task : historyManager.getHistory()) {
-//                bw.write(task.getId() + ",");
-//            }
-//        }
-//    }
-
-    public List<String> readFile() {
-        List<String> list = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line = br.readLine();
-            while ((line = br.readLine()) != null) {
-                if (line.trim().length() <= 0) continue;
-                list.add(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public Task fromString(String str) {
-        String[] newStr = str.split(",");
-        int id = Integer.parseInt(newStr[0]);
-        String title = newStr[2];
-        String description = newStr[4];
-
-        return switch (newStr[1]) {
-            case "EPIC" -> new Epic(id, title, description, TaskStatus.valueOf(newStr[3]));
-            case "SUBTASK" ->
-                    new Subtask(id, title, description, TaskStatus.valueOf(newStr[3]), Integer.parseInt(newStr[5]));
-            default -> new Task(id, title, description, TaskStatus.valueOf(newStr[3]));
-        };
     }
 
     public static FileBackedTaskManager loadFromFile(File file, HistoryManager historyManager) {
         FileBackedTaskManager fileBacked = new FileBackedTaskManager(file.getPath(), historyManager);
         List<String> tasksStr = fileBacked.readFile();
+        if (tasksStr.isEmpty())
+            throw new IllegalArgumentException("File is empty");
+        if (tasksStr.getLast().isEmpty())
+            throw new IllegalArgumentException("History is empty");
 
-        if(!tasksStr.isEmpty()) {
-            List<Integer> historyId = InMemoryHistoryManager.fromString(tasksStr.getLast());
-            tasksStr.removeLast();
-            for (String str : tasksStr) {
-                fileBacked.addTaskFromString(str);
-            }
-            fileBacked.restoreHistory(historyId);
-        }
+        List<Integer> historyId = Arrays.stream(tasksStr.getLast().split(",")).map(Integer::parseInt).toList();
+        tasksStr.removeLast();
+        tasksStr.removeLast();
+        tasksStr.forEach(fileBacked::addTaskFromString);
+        historyId.forEach(id -> {
+            if (fileBacked.tasks.containsKey(id)) historyManager.add(fileBacked.tasks.get(id));
+        });
+        fileBacked.setId();
         return fileBacked;
     }
 
+    public List<String> readFile() {
+        List<String> list = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line = br.readLine();
+            if (line == null || !line.equals("id,type,name,status,description,epic"))
+                throw new ManagerSaveException("File not have data");
+            while ((line = br.readLine()) != null) {
+                list.add(line);
+            }
+        } catch (IOException e) {
+            throw new ManagerSaveException("Wrong file");
+        }
+        return list;
+    }
+
     private void addTaskFromString(String str) {
-        Task task = fromString(str);
+        Task task = getTaskFromString(str);
         if (task instanceof Epic epic) {
             tasks.put(epic.getId(), epic);
         } else if (task instanceof Subtask subtask) {
             ((Epic) tasks.get(subtask.getIdEpic())).addSubtask(subtask);
-            tasks.put(subtask.getId(),subtask);
+            tasks.put(subtask.getId(), subtask);
         } else {
             tasks.put(task.getId(), task);
-        }
-    }
-
-    private void restoreHistory(List<Integer> ids) {
-        for (Integer id : ids) {
-            if (tasks.containsKey(id)) historyManager.add(tasks.get(id));
         }
     }
 

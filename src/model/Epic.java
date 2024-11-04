@@ -1,7 +1,10 @@
 package model;
 
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.Optional;
 
 public class Epic extends Task implements Serializable {
     private final HashMap<Integer, Subtask> subtaskList = new HashMap<>();
@@ -12,6 +15,33 @@ public class Epic extends Task implements Serializable {
 
     public Epic(int id, String title, String description, TaskStatus status) {
         super(id, title, description, status);
+    }
+
+    @Override
+    public Optional<LocalDateTime> getStartTime() {
+        return subtaskList.values().stream()
+                .map(Subtask::getStartTime)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .min(LocalDateTime::compareTo);
+    }
+
+    @Override
+    public Optional<Duration> getDuration() {
+        return subtaskList.values().stream()
+                .map(Subtask::getDuration)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .reduce(Duration::plus);
+    }
+
+    @Override
+    public Optional<LocalDateTime> getEndTime() {
+        return subtaskList.values().stream()
+                .map(Subtask::getEndTime)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .max(LocalDateTime::compareTo);
     }
 
     public HashMap<Integer, Subtask> getSubtaskList() {

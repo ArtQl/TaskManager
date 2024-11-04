@@ -6,14 +6,12 @@ import model.Epic;
 import model.Subtask;
 import model.Task;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Task> tasks = new HashMap<>();
     private int id;
-    public final HistoryManager historyManager;
+    protected final HistoryManager historyManager;
 
     @Override
     public HistoryManager getHistoryManager() {
@@ -26,6 +24,13 @@ public class InMemoryTaskManager implements TaskManager {
 
     public void setId(Task task) {
         task.setId(++id);
+    }
+    public void setId() {
+        if (id == 0 && !tasks.isEmpty()) id = Collections.max(tasks.keySet());
+    }
+
+    public int getId() {
+        return id;
     }
 
     @Override
@@ -143,7 +148,7 @@ public class InMemoryTaskManager implements TaskManager {
         List<Subtask> taskList = tasks.values().stream()
                 .filter(task -> task instanceof Subtask)
                 .map(task -> (Subtask) task).toList();
-        taskList.forEach(historyManager::add);
+        taskList.forEach((task) -> historyManager.add(task));
         return taskList;
     }
 
@@ -162,5 +167,18 @@ public class InMemoryTaskManager implements TaskManager {
         if (tasks.isEmpty() || tasks.containsKey(id) && !(tasks.get(id) instanceof Epic))
             throw new IllegalArgumentException("ID epic not founded");
         return ((Epic) tasks.get(id)).getSubtaskList();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InMemoryTaskManager that = (InMemoryTaskManager) o;
+        return id == that.id && Objects.equals(tasks, that.tasks) && Objects.equals(historyManager, that.historyManager);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tasks, id, historyManager);
     }
 }
