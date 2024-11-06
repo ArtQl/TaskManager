@@ -1,12 +1,14 @@
 package managers.memory;
 
+import model.Task;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 public class TimeIntervalTracker {
-    HashMap<Integer, Boolean> intervalMap = new LinkedHashMap<>();
+    private final HashMap<Integer, Boolean> intervalMap = new LinkedHashMap<>();
 
     public TimeIntervalTracker() {
         for (int i = 0; i < 365 * 24 * 4; i++) {
@@ -22,27 +24,33 @@ public class TimeIntervalTracker {
         return (int) (minSinceStartYear / 15);
     }
 
-    public void addTaskInInterval(LocalDateTime start, LocalDateTime end) {
-        int startIndex = getIntervalIndex(start);
-        int endIndex = getIntervalIndex(end);
+    public void addTaskInInterval(Task task) {
+        if (task.getStartTime().isEmpty() || task.getEndTime().isEmpty()) return;
+        int startIndex = getIntervalIndex(task.getStartTime().get());
+        int endIndex = getIntervalIndex(task.getEndTime().get());
         for (int i = startIndex; i <= endIndex; i++)
             intervalMap.put(i, true);
     }
 
-    public boolean hasOverlap(LocalDateTime start, LocalDateTime end) {
-        int startIndex = getIntervalIndex(start);
-        int endIndex = getIntervalIndex(end);
+    public boolean hasOverlap(Task task) {
+        if (task.getStartTime().isEmpty() || task.getEndTime().isEmpty()) return false;
+        int startIndex = getIntervalIndex(task.getStartTime().get());
+        int endIndex = getIntervalIndex(task.getEndTime().get());
         for (int i = startIndex; i <= endIndex; i++) {
             if (intervalMap.getOrDefault(i, false)) return true;
-            // Пересечение найдено
         }
         return false;
     }
 
-    public void removeTaskFromInterval(LocalDateTime start, LocalDateTime end) {
-        int startIndex = getIntervalIndex(start);
-        int endIndex = getIntervalIndex(end);
+    public void removeTaskFromInterval(Task task) {
+        if (task.getStartTime().isEmpty() || task.getEndTime().isEmpty()) return;
+        int startIndex = getIntervalIndex(task.getStartTime().get());
+        int endIndex = getIntervalIndex(task.getEndTime().get());
         for (int i = startIndex; i <= endIndex; i++)
             intervalMap.put(i, false);
+    }
+
+    public HashMap<Integer, Boolean> getIntervalMap() {
+        return intervalMap;
     }
 }

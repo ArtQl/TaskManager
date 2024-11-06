@@ -63,7 +63,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (tasks.containsValue(task))
             throw new IllegalArgumentException("Task already added in tasks");
         if (task.getStartTime().isPresent() && task.getEndTime().isPresent() &&
-                timeIntervalTracker.hasOverlap(task.getStartTime().get(), task.getEndTime().get()))
+                timeIntervalTracker.hasOverlap(task))
             throw new IllegalArgumentException("Tasks overlap time");
         if (task instanceof Subtask subtask) {
             if (!tasks.containsKey(subtask.getIdEpic())) {
@@ -75,8 +75,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (task.getId() == null) setId(task);
         tasks.put(task.getId(), task);
         priorityTask.add(task);
-        if (task.getStartTime().isPresent() && task.getEndTime().isPresent())
-            timeIntervalTracker.addTaskInInterval(task.getStartTime().get(), task.getEndTime().get());
+        timeIntervalTracker.addTaskInInterval(task);
     }
 
 //    private boolean hasOverlap(Task newTask) {
@@ -99,20 +98,25 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTimeTask(Task task, LocalDateTime localDateTime, Duration duration) {
-        if (timeIntervalTracker.hasOverlap(localDateTime, localDateTime.plus(duration)))
+        if (timeIntervalTracker.hasOverlap(task))
             throw new IllegalArgumentException("Tasks overlap time");
 
         priorityTask.remove(task);
+        timeIntervalTracker.removeTaskFromInterval(task);
+
         if (task instanceof Subtask subtask) {
             priorityTask.remove(getTaskById(subtask.getIdEpic()));
+            timeIntervalTracker.removeTaskFromInterval(getTaskById(subtask.getIdEpic()));
             task.setStartTime(localDateTime);
             task.setDuration(duration);
             priorityTask.add(getTaskById(subtask.getIdEpic()));
+            timeIntervalTracker.addTaskInInterval(getTaskById(subtask.getIdEpic()));
         } else {
             task.setStartTime(localDateTime);
             task.setDuration(duration);
         }
         priorityTask.add(task);
+        timeIntervalTracker.addTaskInInterval(task);
     }
 
     @Override
@@ -124,7 +128,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (task.getClass() != tasks.get(task.getId()).getClass())
             throw new IllegalArgumentException("Current type task other");
         if (task.getStartTime().isPresent() && task.getEndTime().isPresent() &&
-                timeIntervalTracker.hasOverlap(task.getStartTime().get(), task.getEndTime().get()))
+                timeIntervalTracker.hasOverlap(task))
             throw new IllegalArgumentException("Tasks overlap time");
 
         if (task instanceof Subtask subtask) {
@@ -135,8 +139,8 @@ public class InMemoryTaskManager implements TaskManager {
             ((Epic) tasks.get(subtask.getIdEpic())).addSubtask(subtask);
         }
         tasks.put(task.getId(), task);
-        if (task.getStartTime().isPresent() && task.getEndTime().isPresent())
-            timeIntervalTracker.addTaskInInterval(task.getStartTime().get(), task.getEndTime().get());
+        timeIntervalTracker.removeTaskFromInterval(tasks.get(task.getId()));
+        timeIntervalTracker.addTaskInInterval(task);
     }
 
     @Override
@@ -144,6 +148,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (tasks.isEmpty()) throw new RuntimeException("tasks empty");
         tasks.clear();
         historyManager.getHistory().clear();
+        timeIntervalTracker.getIntervalMap().clear();
     }
 
     @Override

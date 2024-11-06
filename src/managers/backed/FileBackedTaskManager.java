@@ -63,7 +63,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         if (tasks.isEmpty()) throw new ManagerSaveException("Tasks are empty");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             bw.write("id,type,name,status,description,epic\n");
-            for (Task task : tasks.values()) bw.write(task + "\n");
+            for (Task task : tasks.values()) bw.write(toString(task) + "\n");
             bw.newLine();
             if (!historyManager.getHistory().isEmpty()) {
                 for (Task task : historyManager.getHistory())
@@ -72,6 +72,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         } catch (IOException e) {
             throw new ManagerSaveException("Error saving data: " + e.getMessage(), e);
         }
+    }
+
+    public String toString(Task task) {
+        List<String> list = new ArrayList<>();
+        list.add(Integer.toString(task.getId()));
+        list.add(task.getClass().getSimpleName().toUpperCase());
+        list.add(task.getTitle());
+        list.add(task.getStatus().toString());
+        list.add(task.getDescription());
+        if (task instanceof Subtask subtask) list.add(Integer.toString(subtask.getIdEpic()));
+        task.getStartTime().ifPresent(time -> list.add(Long.toString(time.toInstant(ZoneOffset.UTC).toEpochMilli())));
+        task.getDuration().ifPresent(time -> list.add(Long.toString(time.toMillis())));
+        return String.join(",", list);
     }
 
     public Task getTaskFromString(String str) {
@@ -109,10 +122,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
     public static FileBackedTaskManager loadFromFile(File file, HistoryManager historyManager) {
         FileBackedTaskManager fileBacked = new FileBackedTaskManager(file.getPath(), historyManager);
         List<String> tasksStr = fileBacked.readFile();
-        if (tasksStr.isEmpty())
-            throw new IllegalArgumentException("File is empty");
-        if (tasksStr.getLast().isEmpty())
-            throw new IllegalArgumentException("History is empty");
+        if (tasksStr.isEmpty()) throw new IllegalArgumentException("File is empty");
+        if (tasksStr.getLast().isEmpty()) throw new IllegalArgumentException("History is empty");
 
         List<Integer> historyId = Arrays.stream(tasksStr.getLast().split(",")).map(Integer::parseInt).toList();
         tasksStr.removeLast();
@@ -153,7 +164,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         }
     }
 
-    // TODO: 10/25/24 Сериализация 
+    // TODO: 10/25/24 Сериализация
 //    public static FileBackedTaskManager loadFromFile(File file) {
 //        FileBackedTaskManager fileBacked;
 //        try (FileInputStream fis = new FileInputStream(file);
