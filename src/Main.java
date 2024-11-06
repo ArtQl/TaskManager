@@ -14,18 +14,18 @@ public class Main {
         backedTaskManager.addTask(new Task("First", "One"));
         backedTaskManager.addTask(new Task("Twice", "Two"));
         backedTaskManager.addTask(new Epic("Two", "Two epic"));
-        backedTaskManager.addTask(new Subtask(3, "SubOne", "Hello"));
-        backedTaskManager.addTask(new Subtask(3, "SubTwo", "Hello"));
-        backedTaskManager.updateTask(new Task(1,"First","One", TaskStatus.DONE));
-        backedTaskManager.updateTask(new Subtask(4, "SubOne","Hello",TaskStatus.NEW, 3));
-        backedTaskManager.updateTask(new Subtask(5, "SubOne","Hello",TaskStatus.DONE, 3));
+        backedTaskManager.addTask(new Subtask("SubOne", "Hello", 3));
+        backedTaskManager.addTask(new Subtask("SubTwo", "Hello", 3));
+        backedTaskManager.updateTask(new Task("First", "One", TaskStatus.DONE, 1));
+        backedTaskManager.updateTask(new Subtask("SubOne", "Hello", TaskStatus.NEW, 4, 3));
+        backedTaskManager.updateTask(new Subtask("SubOne", "Hello", TaskStatus.DONE, 5, 3));
 //        backedTaskManager.removeTaskById(4);
 //        backedTaskManager.removeTaskById(5);
 
         System.out.println(backedTaskManager.getTasks());
         System.out.println(backedTaskManager.getSubtasks());
         System.out.println(backedTaskManager.getEpics());
-//        System.out.println(backedTaskManager.historyManager.getHistory());
+
         System.out.println("///////////////////////");
 
 //        FileBackedTaskManager newBack = FileBackedTaskManager.loadFromFile(new File(System.getProperty("user.dir") + "/src/" + "fileHistory.csv"), Managers.getDefaultHistory());

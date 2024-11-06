@@ -1,8 +1,8 @@
 package managers.history;
 
 import model.Epic;
-import model.Task;
 import model.Subtask;
+import model.Task;
 
 import java.util.ArrayList;
 import java.util.HashMap;

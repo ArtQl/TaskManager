@@ -1,10 +1,10 @@
 package managers;
 
 import managers.history.HistoryManager;
+import managers.history.InMemoryHistoryManager;
+import model.Epic;
 import model.Subtask;
 import model.Task;
-import model.Epic;
-import managers.history.InMemoryHistoryManager;
 import model.TaskStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,11 +22,11 @@ public class HistoryManagerTest {
     @BeforeEach
     void beforeEach() {
         historyManager = new InMemoryHistoryManager();
-        task = new Task(1, "Title", "Desc", TaskStatus.NEW);
-        task2 = new Task(2, "Title", "Desc", TaskStatus.NEW);
-        epic = new Epic(3,"Title", "Desc", TaskStatus.NEW);
-        subtask = new Subtask(4,"Title", "Desc", TaskStatus.NEW, 3);
-        subtask2 = new Subtask(5,"Title", "Desc", TaskStatus.NEW, 3);
+        task = new Task("Title", "Desc", TaskStatus.NEW, 1);
+        task2 = new Task("Title", "Desc", TaskStatus.NEW, 2);
+        epic = new Epic("Title", "Desc", TaskStatus.NEW, 3);
+        subtask = new Subtask("Title", "Desc", TaskStatus.NEW, 4, 3);
+        subtask2 = new Subtask("Title", "Desc", TaskStatus.NEW, 5, 3);
     }
 
     @Test

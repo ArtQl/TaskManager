@@ -1,7 +1,9 @@
 package model;
 
 import java.io.Serializable;
-import java.time.*;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +24,17 @@ public class Task implements Serializable {
         this.status = TaskStatus.NEW;
     }
 
-    public Task(int id, String title, String description, TaskStatus status) {
+    public Task(String title, String description, TaskStatus status) {
+        this.title = title;
+        this.description = description;
+        this.status = switch (status) {
+            case DONE -> TaskStatus.DONE;
+            case IN_PROGRESS -> TaskStatus.IN_PROGRESS;
+            default -> TaskStatus.NEW;
+        };
+    }
+
+    public Task(String title, String description, TaskStatus status, int id) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -33,14 +45,21 @@ public class Task implements Serializable {
         };
     }
 
-    public Task(String title, String description, TaskStatus status) {
+    public Task(String title, String description, LocalDateTime startTime, Duration duration) {
+        this.description = description;
+        this.title = title;
+        this.startTime = startTime;
+        this.duration = duration;
+        this.status = TaskStatus.NEW;
+    }
+
+    public Task(String title, String description, TaskStatus status, Integer id, LocalDateTime startTime, Duration duration) {
         this.title = title;
         this.description = description;
-        this.status = switch (status) {
-            case DONE -> TaskStatus.DONE;
-            case IN_PROGRESS -> TaskStatus.IN_PROGRESS;
-            default -> TaskStatus.NEW;
-        };
+        this.id = id;
+        this.status = status;
+        this.duration = duration;
+        this.startTime = startTime;
     }
 
     public Optional<LocalDateTime> getEndTime() {
@@ -61,8 +80,8 @@ public class Task implements Serializable {
         this.duration = duration;
     }
 
-    public void setStartTime(int year, int month, int day, int hour, int min, int sec) {
-        this.startTime = LocalDateTime.of(year, month, day, hour, min, sec);
+    public void setStartTime(LocalDateTime localDateTime) {
+        this.startTime = localDateTime;
     }
 
     public String getTime() {
@@ -81,22 +100,13 @@ public class Task implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Task task = (Task) o;
-
-        if (!Objects.equals(title, task.title))
-            return false;
-        if (!Objects.equals(description, task.description))
-            return false;
-        return Objects.equals(status, task.status);
+        return Objects.equals(id, task.id) && Objects.equals(title, task.title) && Objects.equals(description, task.description) && status == task.status;
     }
 
     @Override
     public int hashCode() {
-        int result = title != null ? title.hashCode() : 0;
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
-        return result;
+        return Objects.hash(id, title, description, status);
     }
 
     @Override
@@ -109,8 +119,7 @@ public class Task implements Serializable {
         list.add(description);
         if (this instanceof Subtask subtask) list.add(Integer.toString(subtask.getIdEpic()));
         getStartTime().ifPresent(time -> list.add(Long.toString(time.toInstant(ZoneOffset.UTC).toEpochMilli())));
-        getDuration().ifPresent(time -> list.add(Long.toString(time.toNanos())));
-        getEndTime().ifPresent(time -> list.add(Long.toString(time.toInstant(ZoneOffset.UTC).toEpochMilli())));
+        getDuration().ifPresent(time -> list.add(Long.toString(time.toMillis())));
         return String.join(",", list);
     }
 

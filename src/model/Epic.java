@@ -13,8 +13,8 @@ public class Epic extends Task implements Serializable {
         super(title, description);
     }
 
-    public Epic(int id, String title, String description, TaskStatus status) {
-        super(id, title, description, status);
+    public Epic(String title, String description, TaskStatus status, int id) {
+        super(title, description, status, id);
     }
 
     @Override

@@ -7,6 +7,9 @@ import model.TaskStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -29,7 +32,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
         taskManager.addTask(task);
         assertFalse(taskManager.getTasks().isEmpty(), "Task not added");
 
-        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task(1, "1", "1", TaskStatus.NEW)), "Add Task With ID");
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("1", "1", TaskStatus.NEW, 1)), "Add Task With ID");
 
         assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(task), "Add same task");
     }
@@ -44,28 +47,28 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldAddEpicSubtask() {
         taskManager.addTask(epic);
-        taskManager.addTask(new Subtask(1, "1Sub", "d"));
+        taskManager.addTask(new Subtask("1Sub", "d", 1));
         assertEquals(TaskStatus.NEW, taskManager.getTaskById(1).getStatus());
         assertEquals(TaskStatus.NEW, taskManager.getTaskById(2).getStatus());
     }
 
     @Test
     void shouldNotAddSubtaskWithNullIDEpic() {
-        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Subtask(2, "1Sub", "d")));
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Subtask("1Sub", "d", 2)));
     }
 
     @Test
     void shouldUpdateStatusTask() {
         taskManager.addTask(task);
-        taskManager.updateTask(new Task(1, "First", "1", TaskStatus.DONE));
+        taskManager.updateTask(new Task("First", "1", TaskStatus.DONE, 1));
         assertEquals(TaskStatus.DONE, taskManager.getMapTasks().get(1).getStatus());
     }
 
     @Test
     void shouldUpdateStatusSubtask() {
         taskManager.addTask(epic);
-        taskManager.addTask(new Subtask(1, "Subtask", "d"));
-        taskManager.updateTask(new Subtask(2, "Subtask", "First", TaskStatus.DONE, 1));
+        taskManager.addTask(new Subtask("Subtask", "d", 1));
+        taskManager.updateTask(new Subtask("Subtask", "First", TaskStatus.DONE, 2, 1));
         assertEquals(TaskStatus.DONE, taskManager.getMapTasks().get(1).getStatus());
     }
 
@@ -81,9 +84,9 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldNotUpdateTaskOnEpic() {
         taskManager.addTask(epic);
-        taskManager.addTask(new Subtask(1, "Subtask", "d"));
+        taskManager.addTask(new Subtask("Subtask", "d", 1));
         assertThrows(IllegalArgumentException.class, () ->
-                taskManager.updateTask(new Task(1, "Task", "First", TaskStatus.DONE)));
+                taskManager.updateTask(new Task("Task", "First", TaskStatus.DONE, 1)));
     }
 
     @Test
@@ -91,8 +94,8 @@ abstract public class TaskManagerTest<T extends TaskManager> {
         taskManager.addTask(epic);
         epic = (Epic) taskManager.getTaskById(1);
         taskManager.addTask(new Epic("2", "status"));
-        taskManager.addTask(new Subtask(1, "Subtask", "d"));
-        taskManager.updateTask(new Subtask(3, "Subtask", "d", TaskStatus.DONE, 2));
+        taskManager.addTask(new Subtask("Subtask", "d", 1));
+        taskManager.updateTask(new Subtask("Subtask", "d", TaskStatus.DONE, 3, 2));
         assertTrue(((Epic) taskManager.getTaskById(1)).getSubtaskList().isEmpty());
     }
 
@@ -100,7 +103,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     void shouldRemoveAllTacksMap() {
         taskManager.addTask(task);
         taskManager.addTask(epic);
-        taskManager.addTask(new Subtask(2, "1", "1"));
+        taskManager.addTask(new Subtask("1", "1", 2));
         taskManager.removeAllTasks();
         assertThrows(RuntimeException.class, () -> taskManager.getMapTasks(), "tasks no empty");
     }
@@ -109,7 +112,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     void shouldRemoveAllTasks() {
         taskManager.addTask(task);
         taskManager.addTask(epic);
-        taskManager.addTask(new Subtask(2, "1", "1"));
+        taskManager.addTask(new Subtask("1", "1", 2));
         taskManager.removeTasks();
         assertTrue(taskManager.getTasks().isEmpty());
         assertFalse(taskManager.getEpics().isEmpty());
@@ -120,7 +123,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     void shouldRemoveAllEpics() {
         taskManager.addTask(task);
         taskManager.addTask(epic);
-        taskManager.addTask(new Subtask(2, "1", "1"));
+        taskManager.addTask(new Subtask("1", "1", 2));
         taskManager.removeEpics();
         assertFalse(taskManager.getTasks().isEmpty());
         assertTrue(taskManager.getEpics().isEmpty());
@@ -131,7 +134,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     void shouldRemoveAllSubtask() {
         taskManager.addTask(task);
         taskManager.addTask(epic);
-        taskManager.addTask(new Subtask(2, "1", "1"));
+        taskManager.addTask(new Subtask("1", "1", 2));
         taskManager.removeSubtasks();
         assertFalse(taskManager.getTasks().isEmpty());
         assertFalse(taskManager.getEpics().isEmpty());
@@ -151,7 +154,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     void shouldRemoveEpicById() {
         taskManager.addTask(task);
         taskManager.addTask(epic);
-        taskManager.addTask(new Subtask(2, "1", "1"));
+        taskManager.addTask(new Subtask("1", "1", 2));
         taskManager.getTasks();
         taskManager.getEpics();
         taskManager.getSubtasks();
@@ -165,7 +168,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     void shouldRemoveSubtaskById() {
         taskManager.addTask(task);
         taskManager.addTask(epic);
-        taskManager.addTask(new Subtask(2, "1", "1"));
+        taskManager.addTask(new Subtask("1", "1", 2));
         taskManager.getTasks();
         taskManager.getEpics();
         taskManager.getSubtasks();
@@ -193,11 +196,71 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldGetSubtasks() {
         taskManager.addTask(epic);
-        taskManager.addTask(new Subtask(1, "1", "1"));
-        taskManager.addTask(new Subtask(1, "2", "1"));
+        taskManager.addTask(new Subtask("1", "1", 1));
+        taskManager.addTask(new Subtask("2", "1", 1));
         taskManager.getEpics();
         assertFalse(taskManager.getSubtasks().isEmpty());
         assertFalse(taskManager.getHistoryManager().getHistory().isEmpty());
         assertThrows(IllegalArgumentException.class, () -> taskManager.getSubtasksOfEpic(2));
+    }
+
+    @Test
+    void shouldGetPrioritizeTasks() {
+        taskManager.addTask(new Task("task3", "desc"));
+        taskManager.addTask(new Task("task3", "desc", LocalDateTime.of(2024, 10, 10, 10, 0, 0), Duration.ofHours(1)));
+
+        taskManager.addTask(new Task("task1", "desc"));
+        taskManager.updateTimeTask(taskManager.getTaskById(3), LocalDateTime.of(2024, 10, 15, 10, 0, 0), Duration.ofDays(1));
+
+        taskManager.addTask(new Task("task2", "desc"));
+        taskManager.updateTimeTask(taskManager.getTaskById(4), (LocalDateTime.of(2024, 12, 10, 10, 0, 0)), Duration.ofDays(2));
+
+        taskManager.addTask(epic);
+        taskManager.addTask(new Subtask("Sub1", "desc", 5));
+        taskManager.updateTimeTask(taskManager.getTaskById(6), LocalDateTime.of(2024, 9, 15, 10, 0, 0), Duration.ofDays(3));
+
+        taskManager.addTask(new Subtask("Sub2", "desc", 5));
+        taskManager.updateTimeTask(taskManager.getTaskById(7), LocalDateTime.of(2024, 9, 10, 10, 0, 0), Duration.ofDays(4));
+
+        taskManager.addTask(new Subtask("Sub3", "desc", 5));
+        taskManager.addTask(new Task("task1", "desc", LocalDateTime.of(2023, 10, 10, 10, 0, 0), Duration.ofHours(10)));
+
+        assertEquals(9, taskManager.getPrioritizedTasks().size());
+        assertEquals(taskManager.getTaskById(9), taskManager.getPrioritizedTasks().getFirst());
+        assertEquals(taskManager.getTaskById(8), taskManager.getPrioritizedTasks().getLast());
+    }
+
+    @Test
+    void crossingTasks() {
+        taskManager.addTask(new Task("task3", "desc",
+                LocalDateTime.of(2024, 10, 10, 10, 0, 0), Duration.ofDays(2)));
+
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("task3", "desc",
+                LocalDateTime.of(2024, 10, 10, 10, 0, 0), Duration.ofDays(2))),
+                "The Same");
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("task3", "desc",
+                LocalDateTime.of(2024, 10, 8, 10, 0, 0), Duration.ofDays(2))),
+                "before start, end the same");
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("task3", "desc",
+                LocalDateTime.of(2024, 10, 8, 10, 0, 0), Duration.ofDays(3))),
+                "before start, end inner");
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("task3", "desc",
+                LocalDateTime.of(2024, 10, 8, 10, 0, 0), Duration.ofDays(5))),
+                "before start, end after");
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("task3", "desc",
+                LocalDateTime.of(2024, 10, 11, 10, 0, 0), Duration.ofDays(3))),
+                "start after, before end");
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("task3", "desc",
+                LocalDateTime.of(2024, 10, 11, 10, 0, 0), Duration.ofDays(10))),
+                "start after, before after");
+
+        assertDoesNotThrow(() -> taskManager.addTask(new Task("task3", "desc",
+                LocalDateTime.of(2024, 10, 8, 9, 0, 0), Duration.ofDays(2))),
+                "end before");
+
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("task3", "desc",
+                LocalDateTime.of(2024, 10, 12, 10, 0, 0), Duration.ofDays(2))),
+                "start after, overlap - +15min no errors");
+
     }
 }

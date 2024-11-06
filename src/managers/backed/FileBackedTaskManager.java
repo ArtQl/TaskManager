@@ -8,6 +8,10 @@ import model.Task;
 import model.TaskStatus;
 
 import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,7 +26,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
             try {
                 if (file.createNewFile())
                     System.out.println("File created");
-                ;
             } catch (IOException e) {
                 System.out.println("Не удалось создать файл");
             }
@@ -73,23 +76,34 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
 
     public Task getTaskFromString(String str) {
         String[] parts = str.trim().split(",");
-        if (parts.length < 5 || parts.length > 7)
+        if (parts.length < 5 || parts.length > 8)
             throw new IllegalArgumentException("Wrong str length");
 
+        Task task;
         try {
             int id = Integer.parseInt(parts[0]);
             String title = parts[2];
             String description = parts[4];
             TaskStatus taskStatus = TaskStatus.valueOf(parts[3]);
-            return switch (parts[1]) {
-                case "EPIC" -> new Epic(id, title, description, taskStatus);
-                case "SUBTASK" ->
-                        new Subtask(id, title, description, taskStatus, Integer.parseInt(parts[5]));
-                default -> new Task(id, title, description, taskStatus);
+            task = switch (parts[1]) {
+                case "EPIC" -> new Epic(title, description, taskStatus, id);
+                case "TASK" -> new Task(title, description, taskStatus, id);
+                default ->
+                        new Subtask(title, description, taskStatus, id, Integer.parseInt(parts[5]));
             };
+            if (parts.length >= 7) {
+                if (task instanceof Subtask) {
+                    task.setStartTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(parts[6])), ZoneOffset.UTC));
+                    task.setDuration(Duration.ofMillis(Long.parseLong(parts[7])));
+                } else {
+                    task.setStartTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(parts[5])), ZoneOffset.UTC));
+                    task.setDuration(Duration.ofMillis(Long.parseLong(parts[6])));
+                }
+            }
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Error parsing data from string");
         }
+        return task;
     }
 
     public static FileBackedTaskManager loadFromFile(File file, HistoryManager historyManager) {
@@ -105,7 +119,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         tasksStr.removeLast();
         tasksStr.forEach(fileBacked::addTaskFromString);
         historyId.forEach(id -> {
-            if (fileBacked.tasks.containsKey(id)) historyManager.add(fileBacked.tasks.get(id));
+            if (fileBacked.tasks.containsKey(id))
+                historyManager.add(fileBacked.tasks.get(id));
         });
         fileBacked.setId();
         return fileBacked;

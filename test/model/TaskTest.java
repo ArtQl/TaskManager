@@ -1,21 +1,25 @@
 package model;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TaskTest {
 
     @Test
     void getTime() {
-        Task task = new Task(1,"Title", "Desc", TaskStatus.NEW);
+        Task task = new Task("Title", "Desc", TaskStatus.NEW, 1);
         assertTrue(task.getStartTime().isEmpty());
         assertTrue(task.getDuration().isEmpty());
         assertTrue(task.getEndTime().isEmpty());
         assertDoesNotThrow(() -> task);
 
-        task.setStartTime(2024, 1, 1, 10, 30, 30);
+        task.setStartTime(LocalDateTime.of(2024, 1, 1, 10, 30, 30));
         assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1704105030000L), ZoneOffset.UTC),
                 task.getStartTime().get(), "Start set");
 
