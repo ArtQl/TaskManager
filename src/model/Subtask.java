@@ -3,9 +3,9 @@ package model;
 import java.io.Serializable;
 
 public class Subtask extends Task implements Serializable {
-    private Integer idEpic;
+    private final Integer idEpic;
 
-    public Subtask(int idEpic, String title, String description) {
+    public Subtask(String title, String description, int idEpic) {
         super(title, description);
         this.idEpic = idEpic;
     }
@@ -15,21 +15,12 @@ public class Subtask extends Task implements Serializable {
         this.idEpic = idEpic;
     }
 
-    public Subtask(int id, String title, String description, TaskStatus status, int idEpic) {
-        super(id, title, description, status);
-        this.idEpic = idEpic;
-    }
-
-    public void setIdEpic(int idEpic) {
+    public Subtask(String title, String description, TaskStatus status, int id, int idEpic) {
+        super(title, description, status, id);
         this.idEpic = idEpic;
     }
 
     public int getIdEpic() {
         return idEpic;
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + "," + idEpic;
     }
 }

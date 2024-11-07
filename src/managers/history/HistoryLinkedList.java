@@ -1,6 +1,7 @@
 package managers.history;
 
 import model.Epic;
+import model.Subtask;
 import model.Task;
 
 import java.util.ArrayList;
@@ -15,12 +16,16 @@ public class HistoryLinkedList<T extends Task> {
     private final Map<Integer, Node<T>> historyMap = new HashMap<>();
 
     public void add(T task) {
-        if (task == null) return;
-        if (historyMap.containsKey(task.getId())) {
-            remove(historyMap.get(task.getId()));
-        }
-        if (historyMap.size() == MAX_SIZE) {
-            removeFirst();
+        if (task == null)
+            throw new IllegalArgumentException("History: task null");
+
+        if (historyMap.containsKey(task.getId())) remove(task.getId());
+
+        if (historyMap.size() == MAX_SIZE) removeFirst();
+
+        if (task instanceof Subtask subtask &&
+                historyMap.get(subtask.getIdEpic()) != null) {
+            ((Epic) historyMap.get(subtask.getIdEpic()).getData()).addSubtask(subtask);
         }
 
         Node<T> newNode = new Node<>(task);
@@ -47,36 +52,32 @@ public class HistoryLinkedList<T extends Task> {
     }
 
     public void removeFirst() {
+        if (head == null)
+            throw new IllegalArgumentException("First node null");
+        historyMap.remove(head.getData().getId());
+        head = head.getNext();
         if (head != null) {
-            historyMap.remove(head.getData().getId());
-            head = head.getNext();
-            if (head != null) {
-                head.setPrev(null);
-            } else {
-                tail = null;
-            }
+            head.setPrev(null);
+        } else {
+            tail = null;
         }
     }
 
     public void removeLast() {
+        if (tail == null)
+            throw new IllegalArgumentException("Last node null");
+        historyMap.remove(tail.getData().getId());
+        tail = tail.getPrev();
         if (tail != null) {
-            historyMap.remove(tail.getData().getId());
-            tail = tail.getPrev();
-            if (tail != null) {
-                tail.setNext(null);
-            } else {
-                head = null;
-            }
+            tail.setNext(null);
+        } else {
+            head = null;
         }
     }
 
-    public void remove(Node<T> node) {
-        if (node == null) return;
-
+    private void remove(Node<T> node) {
         if (node.getData() instanceof Epic epic && epic.getSubtaskList() != null) {
-            for (Integer id : epic.getSubtaskList().keySet()) {
-                remove(id);
-            }
+            epic.getSubtaskList().keySet().forEach(this::remove);
         }
         if (node.equals(head)) {
             removeFirst();
@@ -91,11 +92,22 @@ public class HistoryLinkedList<T extends Task> {
 
     public void remove(int id) {
         Node<T> node = historyMap.get(id);
-        if (node != null) {
-            remove(node);
-        } else {
-            System.out.println("ID not founded");
-        }
+        if (node == null)
+            throw new IllegalArgumentException("ID not founded");
+        remove(node);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HistoryLinkedList<?> that = (HistoryLinkedList<?>) o;
+        return Objects.equals(head, that.head) && Objects.equals(tail, that.tail) && Objects.equals(historyMap, that.historyMap);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(head, tail, historyMap);
     }
 }
 
@@ -114,22 +126,13 @@ class Node<T> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Node<?> node = (Node<?>) o;
-
-        if (!Objects.equals(data, node.data))
-            return false;
-        if (!Objects.equals(next, node.next))
-            return false;
-        return Objects.equals(prev, node.prev);
+        return Objects.equals(data, node.data) && Objects.equals(next, node.next) && Objects.equals(prev, node.prev);
     }
 
     @Override
     public int hashCode() {
-        int result = data != null ? data.hashCode() : 0;
-        result = 31 * result + (next != null ? next.hashCode() : 0);
-        result = 31 * result + (prev != null ? prev.hashCode() : 0);
-        return result;
+        return Objects.hash(data, next, prev);
     }
 
     @Override

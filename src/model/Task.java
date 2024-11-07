@@ -1,17 +1,22 @@
 package model;
 
-import managers.memory.InMemoryTaskManager;
-
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class Task implements Serializable {
     protected Integer id;
     protected final String title;
     protected final String description;
     protected TaskStatus status;
+    protected Duration duration;
+    protected LocalDateTime startTime;
 
     public Task(String title, String description) {
         this.title = title;
@@ -19,51 +24,92 @@ public class Task implements Serializable {
         this.status = TaskStatus.NEW;
     }
 
-    public Task(int id, String title, String description, TaskStatus status) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.status = switch (status) {
-            default -> TaskStatus.NEW;
-            case IN_PROGRESS -> TaskStatus.IN_PROGRESS;
-            case DONE -> TaskStatus.DONE;
-        };
-    }
-
     public Task(String title, String description, TaskStatus status) {
         this.title = title;
         this.description = description;
         this.status = switch (status) {
-            default -> TaskStatus.NEW;
-            case IN_PROGRESS -> TaskStatus.IN_PROGRESS;
             case DONE -> TaskStatus.DONE;
+            case IN_PROGRESS -> TaskStatus.IN_PROGRESS;
+            default -> TaskStatus.NEW;
         };
     }
 
-    public void setId() {
-        this.id = ++InMemoryTaskManager.id;
+    public Task(String title, String description, TaskStatus status, int id) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.status = switch (status) {
+            case DONE -> TaskStatus.DONE;
+            case IN_PROGRESS -> TaskStatus.IN_PROGRESS;
+            default -> TaskStatus.NEW;
+        };
+    }
+
+    public Task(String title, String description, LocalDateTime startTime, Duration duration) {
+        this.description = description;
+        this.title = title;
+        this.startTime = startTime;
+        this.duration = duration;
+        this.status = TaskStatus.NEW;
+    }
+
+    public Task(String title, String description, TaskStatus status, Integer id, LocalDateTime startTime, Duration duration) {
+        this.title = title;
+        this.description = description;
+        this.id = id;
+        this.status = status;
+        this.duration = duration;
+        this.startTime = startTime;
+    }
+
+    public Optional<LocalDateTime> getEndTime() {
+        return getStartTime().isPresent() && getDuration().isPresent() ?
+                Optional.of(startTime.plus(duration)) :
+                Optional.empty();
+    }
+
+    public Optional<Duration> getDuration() {
+        return Optional.ofNullable(duration);
+    }
+
+    public Optional<LocalDateTime> getStartTime() {
+        return Optional.ofNullable(startTime);
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public void setStartTime(LocalDateTime localDateTime) {
+        this.startTime = localDateTime;
+    }
+
+    public String getTime() {
+        return getStartTime().isPresent() && getDuration().isPresent() && getEndTime().isPresent() ?
+                "Start: " + startTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss"))
+                + ", Duration: " + duration.toMinutes() + " min., "
+                + "End time: " + getEndTime().get().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss")) :
+                "No time";
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Task task = (Task) o;
-
-        if (!Objects.equals(title, task.title))
-            return false;
-        if (!Objects.equals(description, task.description))
-            return false;
-        return Objects.equals(status, task.status);
+        return Objects.equals(id, task.id)
+                && Objects.equals(title, task.title)
+                && Objects.equals(description, task.description)
+                && status == task.status;
     }
 
     @Override
     public int hashCode() {
-        int result = title != null ? title.hashCode() : 0;
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
-        return result;
+        return Objects.hash(id, title, description, status);
     }
 
     @Override
@@ -74,6 +120,9 @@ public class Task implements Serializable {
         list.add(title);
         list.add(status.toString());
         list.add(description);
+        if (this instanceof Subtask subtask) list.add(Integer.toString(subtask.getIdEpic()));
+        getStartTime().ifPresent(time -> list.add(Long.toString(time.toInstant(ZoneOffset.UTC).toEpochMilli())));
+        getDuration().ifPresent(time -> list.add(Long.toString(time.toMillis())));
         return String.join(",", list);
     }
 

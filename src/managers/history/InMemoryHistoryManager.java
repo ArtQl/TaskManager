@@ -2,8 +2,8 @@ package managers.history;
 
 import model.Task;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class InMemoryHistoryManager implements HistoryManager {
     private final HistoryLinkedList<Task> historyTasks;
@@ -12,20 +12,14 @@ public class InMemoryHistoryManager implements HistoryManager {
         this.historyTasks = new HistoryLinkedList<>();
     }
 
-    public static String toString(HistoryManager manager) {
-        StringBuilder str = new StringBuilder();
-        for (Task task : manager.getHistory()) {
-            str.append(task.getId()).append(",");
-        }
-        return str.toString();
+    @Override
+    public HistoryLinkedList<Task> getHistoryTasks() {
+        return historyTasks;
     }
 
-    public static List<Integer> fromString(String value) {
-        List<Integer> list = new ArrayList<>();
-        for (String s : value.split(",")) {
-            list.add(Integer.parseInt(s));
-        }
-        return list;
+    @Override
+    public String toString() {
+        return "InMemoryHistoryManager{historyTasks=" + historyTasks + '}';
     }
 
     @Override
@@ -41,5 +35,18 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public List<Task> getHistory() {
         return historyTasks.getTasks();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InMemoryHistoryManager that = (InMemoryHistoryManager) o;
+        return Objects.equals(historyTasks, that.historyTasks);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(historyTasks);
     }
 }
