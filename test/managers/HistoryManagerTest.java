@@ -50,14 +50,14 @@ public class HistoryManagerTest {
     void removeFirstLast() {
         historyManager.add(task);
         historyManager.add(task2);
-        historyManager.getHistoryTasks().removeFirst();
-        historyManager.getHistoryTasks().removeFirst();
-        assertThrows(IllegalArgumentException.class, () -> historyManager.getHistoryTasks().removeFirst());
+        historyManager.removeFirst();
+        historyManager.removeFirst();
+        assertThrows(IllegalArgumentException.class, () -> historyManager.removeFirst());
         historyManager.add(task);
         historyManager.add(task2);
-        historyManager.getHistoryTasks().removeLast();
-        historyManager.getHistoryTasks().removeLast();
-        assertThrows(IllegalArgumentException.class, () -> historyManager.getHistoryTasks().removeLast());
+        historyManager.removeLast();
+        historyManager.removeLast();
+        assertThrows(IllegalArgumentException.class, () -> historyManager.removeLast());
 
     }
 }
