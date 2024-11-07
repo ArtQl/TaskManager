@@ -39,6 +39,7 @@ public class HistoryManagerTest {
         historyManager.add(subtask);
         historyManager.add(subtask2);
         assertEquals(5, historyManager.getHistory().size());
+        assertEquals(subtask2, historyManager.getHistory().getLast());
 
         historyManager.add(epic);
         assertEquals(3, historyManager.getHistory().size(), "remove subtasks");
@@ -51,6 +52,7 @@ public class HistoryManagerTest {
         historyManager.add(task);
         historyManager.add(task2);
         historyManager.add(epic);
+
         historyManager.removeFirst();
         historyManager.removeFirst();
         historyManager.removeFirst();

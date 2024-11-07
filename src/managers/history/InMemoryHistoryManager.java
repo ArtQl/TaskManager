@@ -98,8 +98,14 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public List<Task> getHistory() {
+        if (historyMap.isEmpty()) return new ArrayList<>();
         ArrayList<Task> list = new ArrayList<>();
-        historyMap.values().forEach(task -> list.add(task.data));
+        Node<Task> node = head;
+        do {
+            list.add(node.data);
+            node = node.nextNode;
+        } while (!node.equals(head));
+
         return list;
     }
 
