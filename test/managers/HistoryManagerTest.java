@@ -50,6 +50,8 @@ public class HistoryManagerTest {
     void removeFirstLast() {
         historyManager.add(task);
         historyManager.add(task2);
+        historyManager.add(epic);
+        historyManager.removeFirst();
         historyManager.removeFirst();
         historyManager.removeFirst();
         assertThrows(IllegalArgumentException.class, () -> historyManager.removeFirst());

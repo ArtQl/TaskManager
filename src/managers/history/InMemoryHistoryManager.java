@@ -26,7 +26,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (historyMap.size() == MAX_SIZE) removeFirst();
 
         if (task instanceof Subtask subtask &&
-                historyMap.get(subtask.getIdEpic()) != null) {
+                historyMap.containsKey(subtask.getIdEpic())) {
             ((Epic) historyMap.get(subtask.getIdEpic()).data).addSubtask(subtask);
         }
 
@@ -34,10 +34,12 @@ public class InMemoryHistoryManager implements HistoryManager {
 
         if (head == null) {
             head = tail = newNode;
+            head.nextNode = head.prevNode = head;
         } else {
-            tail.next = newNode;
-            newNode.prev = tail;
-            tail = newNode;
+            tail.nextNode = newNode;
+            newNode.prevNode = tail;
+            newNode.nextNode = head;
+            tail = head.prevNode = newNode;
         }
 
         historyMap.put(task.getId(), tail);
@@ -46,9 +48,22 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public void remove(int id) {
         Node<Task> node = historyMap.get(id);
-        if (node == null)
-            throw new IllegalArgumentException("ID not founded");
-        remove(node);
+        if (node == null) throw new IllegalArgumentException("ID not founded");
+
+        if (node.data instanceof Epic epic && epic.getSubtaskList() != null)  {
+            epic.getSubtaskList().values().forEach(task -> remove(task.getId()));
+            epic.getSubtaskList().clear();
+        }
+
+        if (node.equals(head)) {
+            removeFirst();
+        } else if (node.equals(tail)) {
+            removeLast();
+        } else {
+            node.prevNode.nextNode = node.nextNode;
+            node.nextNode.prevNode = node.prevNode;
+        }
+        historyMap.remove(node.data.getId());
     }
 
     @Override
@@ -56,12 +71,14 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (head == null)
             throw new IllegalArgumentException("First node null");
         historyMap.remove(head.data.getId());
-        head = head.next;
-        if (head != null) {
-            head.prev = null;
-        } else {
-            tail = null;
+
+        if (head.nextNode.equals(head)) {
+            head = tail = null;
+            return;
         }
+        head = head.nextNode;
+        head.prevNode = tail;
+        tail.nextNode = head;
     }
 
     @Override
@@ -69,38 +86,20 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (tail == null)
             throw new IllegalArgumentException("Last node null");
         historyMap.remove(tail.data.getId());
-        tail = tail.prev;
-        if (tail != null) {
-            tail.next = null;
-        } else {
-            head = null;
-        }
-    }
 
-    private void remove(Node<Task> node) {
-        if (node.data instanceof Epic epic && epic.getSubtaskList() != null) {
-            epic.getSubtaskList().keySet().forEach(this::remove);
+        if (tail.nextNode.equals(tail)) {
+            head = tail = null;
+            return;
         }
-        if (node.equals(head)) {
-            removeFirst();
-        } else if (node.equals(tail)) {
-            removeLast();
-        } else {
-            node.prev.next = node.next;
-            node.next.prev = node.prev;
-        }
-        historyMap.remove(node.data.getId());
+        tail = tail.prevNode;
+        tail.nextNode = head;
+        head.prevNode = tail;
     }
-
 
     @Override
     public List<Task> getHistory() {
         ArrayList<Task> list = new ArrayList<>();
-        Node<Task> current = head;
-        while (current != null) {
-            list.add(current.data);
-            current = current.next;
-        }
+        historyMap.values().forEach(task -> list.add(task.data));
         return list;
     }
 
@@ -119,13 +118,13 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     private static class Node<T extends Task> {
         private final T data;
-        private Node<T> next;
-        private Node<T> prev;
+        private Node<T> nextNode;
+        private Node<T> prevNode;
 
         public Node(T data) {
             this.data = data;
-            this.next = null;
-            this.prev = null;
+            this.nextNode = null;
+            this.prevNode = null;
         }
     }
 }
