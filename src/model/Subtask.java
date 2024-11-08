@@ -1,8 +1,6 @@
 package model;
 
-import java.io.Serializable;
-
-public class Subtask extends Task implements Serializable {
+public class Subtask extends Task {
     private final Integer idEpic;
 
     public Subtask(String title, String description, int idEpic) {

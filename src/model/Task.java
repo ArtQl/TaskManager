@@ -1,6 +1,5 @@
 package model;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -10,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class Task implements Serializable {
+public class Task {
     protected Integer id;
     protected final String title;
     protected final String description;

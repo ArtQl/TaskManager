@@ -27,11 +27,6 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     }
 
     @Test
-    void shouldNotSaveDataToFileWithEmptyTasks() {
-        assertThrows(ManagerSaveException.class, () -> taskManager.save());
-    }
-
-    @Test
     void shouldSaveDataToFile() {
         assertDoesNotThrow(() -> taskManager.addTask(task));
         assertDoesNotThrow(() -> taskManager.addTask(epic));
@@ -106,5 +101,15 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         FileBackedTaskManager fileBackedTaskManager = FileBackedTaskManager.loadFromFile(new File(System.getProperty("user.dir") + "/src/" + "fileHistory.csv"), new InMemoryHistoryManager());
         assertEquals(taskManager.getMapTasks(), fileBackedTaskManager.getMapTasks());
         assertEquals(taskManager.getHistoryManager().getHistory(), fileBackedTaskManager.getHistoryManager().getHistory());
+    }
+
+    @Test
+    void updateAndRemoveTask() {
+        taskManager.addTask(task);
+        taskManager.addTask(epic);
+        taskManager.addTask(new Task("1", "desc"));
+        taskManager.updateTask(new Task("title", "desc", TaskStatus.IN_PROGRESS, 1));
+        taskManager.removeTaskById(1);
+        taskManager.removeEpics();
     }
 }

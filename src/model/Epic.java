@@ -1,12 +1,11 @@
 package model;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Optional;
 
-public class Epic extends Task implements Serializable {
+public class Epic extends Task {
     private final HashMap<Integer, Subtask> subtaskList = new HashMap<>();
 
     public Epic(String title, String description) {
