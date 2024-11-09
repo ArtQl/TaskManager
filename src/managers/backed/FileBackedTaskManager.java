@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class FileBackedTaskManager extends InMemoryTaskManager implements Serializable {
+public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File file;
 
     public FileBackedTaskManager(String filePath, HistoryManager historyManager) {
@@ -59,11 +59,47 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         return map;
     }
 
+    @Override
+    public void updateTask(Task task) {
+        super.updateTask(task);
+        save();
+    }
+
+    @Override
+    public void removeAllTasks() {
+        super.removeAllTasks();
+        save();
+    }
+
+    @Override
+    public void removeTasks() {
+        super.removeTasks();
+        save();
+    }
+
+    @Override
+    public void removeSubtasks() {
+        super.removeSubtasks();
+        save();
+    }
+
+    @Override
+    public void removeEpics() {
+        super.removeEpics();
+        save();
+    }
+
+    @Override
+    public void removeTaskById(int id) {
+        super.removeTaskById(id);
+        save();
+    }
+
+
     public void save() throws ManagerSaveException {
-        if (tasks.isEmpty()) throw new ManagerSaveException("Tasks are empty");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             bw.write("id,type,name,status,description,epic\n");
-            for (Task task : tasks.values()) bw.write(toString(task) + "\n");
+            for (Task task : tasks.values()) bw.write(task + "\n");
             bw.newLine();
             if (!historyManager.getHistory().isEmpty()) {
                 for (Task task : historyManager.getHistory())
@@ -72,19 +108,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
         } catch (IOException e) {
             throw new ManagerSaveException("Error saving data: " + e.getMessage(), e);
         }
-    }
-
-    public String toString(Task task) {
-        List<String> list = new ArrayList<>();
-        list.add(Integer.toString(task.getId()));
-        list.add(task.getClass().getSimpleName().toUpperCase());
-        list.add(task.getTitle());
-        list.add(task.getStatus().toString());
-        list.add(task.getDescription());
-        if (task instanceof Subtask subtask) list.add(Integer.toString(subtask.getIdEpic()));
-        task.getStartTime().ifPresent(time -> list.add(Long.toString(time.toInstant(ZoneOffset.UTC).toEpochMilli())));
-        task.getDuration().ifPresent(time -> list.add(Long.toString(time.toMillis())));
-        return String.join(",", list);
     }
 
     public Task getTaskFromString(String str) {
@@ -163,25 +186,4 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements Serial
             tasks.put(task.getId(), task);
         }
     }
-
-    // TODO: 10/25/24 Сериализация
-//    public static FileBackedTaskManager loadFromFile(File file) {
-//        FileBackedTaskManager fileBacked;
-//        try (FileInputStream fis = new FileInputStream(file);
-//             ObjectInputStream ois = new ObjectInputStream(fis)) {
-//            fileBacked = (FileBackedTaskManager) ois.readObject();
-//        } catch (IOException | ClassNotFoundException e) {
-//            throw new ManagerSaveException("Error load class: " + e.getMessage(), e);
-//        }
-//        return fileBacked;
-//    }
-//
-//    public static void putInFile(FileBackedTaskManager backedTaskManager, File file) {
-//        try (FileOutputStream fos = new FileOutputStream(file);
-//             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-//            oos.writeObject(backedTaskManager);
-//        } catch (IOException e) {
-//            throw new ManagerSaveException("Error put class: " + e.getMessage(), e);
-//        }
-//    }
 }

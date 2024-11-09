@@ -10,8 +10,10 @@ public interface HistoryManager {
 
     void remove(int id);
 
-    List<Task> getHistory();
+    void removeFirst();
 
-    HistoryLinkedList<Task> getHistoryTasks();
+    void removeLast();
+
+    List<Task> getHistory();
 
 }

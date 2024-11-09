@@ -39,6 +39,7 @@ public class HistoryManagerTest {
         historyManager.add(subtask);
         historyManager.add(subtask2);
         assertEquals(5, historyManager.getHistory().size());
+        assertEquals(subtask2, historyManager.getHistory().getLast());
 
         historyManager.add(epic);
         assertEquals(3, historyManager.getHistory().size(), "remove subtasks");
@@ -50,14 +51,17 @@ public class HistoryManagerTest {
     void removeFirstLast() {
         historyManager.add(task);
         historyManager.add(task2);
-        historyManager.getHistoryTasks().removeFirst();
-        historyManager.getHistoryTasks().removeFirst();
-        assertThrows(IllegalArgumentException.class, () -> historyManager.getHistoryTasks().removeFirst());
+        historyManager.add(epic);
+
+        historyManager.removeFirst();
+        historyManager.removeFirst();
+        historyManager.removeFirst();
+        assertThrows(IllegalArgumentException.class, () -> historyManager.removeFirst());
         historyManager.add(task);
         historyManager.add(task2);
-        historyManager.getHistoryTasks().removeLast();
-        historyManager.getHistoryTasks().removeLast();
-        assertThrows(IllegalArgumentException.class, () -> historyManager.getHistoryTasks().removeLast());
+        historyManager.removeLast();
+        historyManager.removeLast();
+        assertThrows(IllegalArgumentException.class, () -> historyManager.removeLast());
 
     }
 }
