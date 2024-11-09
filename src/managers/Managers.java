@@ -1,12 +1,15 @@
 package managers;
 
+import managers.backed.FileBackedTaskManager;
 import managers.history.HistoryManager;
 import managers.history.InMemoryHistoryManager;
 import managers.memory.InMemoryTaskManager;
 
+import java.io.File;
+
 public class Managers {
     public static TaskManager getDefault() {
-        return new InMemoryTaskManager(getDefaultHistory());
+        return FileBackedTaskManager.loadFromFile(new File(System.getProperty("user.dir") + "/src/" + "fileHistory.csv"), getDefaultHistory());
     }
 
     public static HistoryManager getDefaultHistory() {
