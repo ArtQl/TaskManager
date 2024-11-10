@@ -16,6 +16,10 @@ public class Epic extends Task {
         super(title, description, status, id);
     }
 
+    public Epic(String title, String description, TaskStatus status, Integer id, LocalDateTime startTime, Duration duration) {
+        super(title, description, status, id, startTime, duration);
+    }
+
     @Override
     public Optional<LocalDateTime> getStartTime() {
         return subtaskList.values().stream()

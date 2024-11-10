@@ -16,6 +16,7 @@ public class Task {
     protected TaskStatus status;
     protected Duration duration;
     protected LocalDateTime startTime;
+    protected String type = this.getClass().getSimpleName();
 
     public Task(String title, String description) {
         this.title = title;

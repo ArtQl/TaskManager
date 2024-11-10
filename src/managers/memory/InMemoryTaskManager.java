@@ -58,9 +58,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void addTask(Task task) {
-        if (task.getId() != null)
-            throw new IllegalArgumentException("taskID set");
-        if (tasks.containsValue(task))
+        if (task.getId() != null && tasks.containsValue(task))
             throw new IllegalArgumentException("Task already added in tasks");
         if (task.getStartTime().isPresent() && task.getEndTime().isPresent() &&
                 timeIntervalTracker.hasOverlap(task))
