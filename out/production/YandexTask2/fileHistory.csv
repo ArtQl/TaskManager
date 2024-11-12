@@ -1,7 +1,7 @@
-id,type,name,status,description,epic
-1,TASK,title,NEW,desc
-2,EPIC,title,NEW,desc
-3,SUBTASK,title,NEW,desc,2
-4,EPIC,titleOne,NEW,des
+id,type,title,status,description,epic,startTime,duration
+1,Task,title,NEW,desc,0,1704103800000,18000000
+2,Epic,title,NEW,desc,0,1705331400000,2173800000
+3,Subtask,SubOne,NEW,Hello,2,1705331400000,865200000
+4,Subtask,SubTwo,NEW,Hello,2,1706638200000,1308600000
 
-2,1,
+3,4,2,1,

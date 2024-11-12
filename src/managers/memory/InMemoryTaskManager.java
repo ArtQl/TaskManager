@@ -2,6 +2,7 @@ package managers.memory;
 
 import managers.TaskManager;
 import managers.history.HistoryManager;
+import managers.history.InMemoryHistoryManager;
 import model.Epic;
 import model.Subtask;
 import model.Task;
@@ -17,8 +18,8 @@ public class InMemoryTaskManager implements TaskManager {
     protected final HistoryManager historyManager;
     protected final TimeIntervalTracker timeIntervalTracker;
 
-    public InMemoryTaskManager(HistoryManager historyManager) {
-        this.historyManager = historyManager;
+    public InMemoryTaskManager() {
+        this.historyManager = new InMemoryHistoryManager();
         tasks = new HashMap<>();
         priorityTask = new TreeSet<>(Comparator.comparing(
                 (Task task) -> task.getStartTime().orElse(LocalDateTime.MAX)
@@ -58,7 +59,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void addTask(Task task) {
-        if (task.getId() != null && tasks.containsValue(task))
+        if (task.getId() != null && tasks.containsKey(task.getId()) || tasks.containsValue(task))
             throw new IllegalArgumentException("Task already added in tasks");
         if (task.getStartTime().isPresent() && task.getEndTime().isPresent() &&
                 timeIntervalTracker.hasOverlap(task))
@@ -152,27 +153,26 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeTasks() {
         if (tasks.isEmpty()) throw new RuntimeException("tasks empty");
-        List<Task> taskList = tasks.values().stream()
-                .filter(value -> !(value instanceof Epic))
-                .filter(value -> !(value instanceof Subtask)).toList();
-        taskList.forEach(task -> removeTaskById(task.getId()));
+        List<Integer> taskIds = tasks.values().stream()
+                .filter(value -> !(value instanceof Epic || value instanceof Subtask))
+                .map(Task::getId).toList();
+        taskIds.forEach(this::removeTaskById);
     }
 
     @Override
     public void removeSubtasks() {
         if (tasks.isEmpty()) throw new RuntimeException("tasks empty");
-        List<Task> taskList = tasks.values().stream()
-                .filter(task -> task instanceof Subtask).toList();
-        taskList.forEach(task -> removeTaskById(task.getId()));
+        List<Integer> subtaskIds = tasks.values().stream().filter(value -> value instanceof Subtask)
+                .map(Task::getId).toList();
+        subtaskIds.forEach(this::removeTaskById);
     }
 
     @Override
     public void removeEpics() {
         if (tasks.isEmpty()) throw new RuntimeException("tasks empty");
-        List<Task> taskList = tasks.values().stream()
-                .filter(value -> value instanceof Epic)
-                .toList();
-        taskList.forEach(task -> removeTaskById(task.getId()));
+        List<Integer> epicIds = tasks.values().stream().filter(value -> value instanceof Epic)
+                .map(Task::getId).toList();
+        epicIds.forEach(this::removeTaskById);
     }
 
     @Override
@@ -182,14 +182,16 @@ public class InMemoryTaskManager implements TaskManager {
             throw new IllegalArgumentException("ID not founded");
         }
         if (tasks.get(id) instanceof Epic epic) {
-            for (int idSubtask : epic.getSubtaskList().keySet()) {
+            List<Integer> subtaskIds = new ArrayList<>(epic.getSubtaskList().keySet());
+            for (int idSubtask : subtaskIds) {
                 removeTaskById(idSubtask);
             }
         } else if (tasks.get(id) instanceof Subtask subtask) {
             ((Epic) tasks.get(subtask.getIdEpic())).removeSubtask(id);
         }
+        if (!historyManager.getHistory().isEmpty() && historyManager.getHistory().contains(tasks.get(id)))
+            historyManager.remove(id);
         tasks.remove(id);
-        if (!historyManager.getHistory().isEmpty()) historyManager.remove(id);
     }
 
     @Override
@@ -201,7 +203,6 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Map<Integer, Task> getMapTasks() {
-        if (tasks.isEmpty()) throw new RuntimeException("tasks empty");
         return tasks;
     }
 
@@ -240,7 +241,6 @@ public class InMemoryTaskManager implements TaskManager {
             throw new IllegalArgumentException("ID epic not founded");
         return ((Epic) tasks.get(id)).getSubtaskList();
     }
-
 
     @Override
     public boolean equals(Object o) {

@@ -9,15 +9,13 @@ import model.Epic;
 import model.Subtask;
 import model.Task;
 import model.TaskStatus;
+import server.gson_adapter.DurationAdapter;
+import server.gson_adapter.LocalDateAdapter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -25,18 +23,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class HttpTaskServer {
-    private final HttpServer httpServer;
     private final TaskManager taskManager;
     private final Gson gson;
 
     public HttpTaskServer() throws IOException {
         taskManager = Managers.getDefault();
-        httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
         gson = new GsonBuilder()
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateAdapter())
                 .serializeNulls()
                 .create();
+        HttpServer httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
         httpServer.createContext("/tasks", this::handleTasks);
         httpServer.start();
     }
@@ -54,9 +51,9 @@ public class HttpTaskServer {
             handleTask(exchange, gson);
         } else if ("/tasks/task".equals(path) && exchange.getRequestMethod().equals("POST")) {
             handleAddTask(exchange);
-        } else if ("tasks/task".equals(path) && exchange.getRequestMethod().equals("DELETE") && taskId != 0) {
+        } else if ("/tasks/task".equals(path) && exchange.getRequestMethod().equals("DELETE") && taskId != 0) {
             handleDeleteTaskByID(exchange, taskId);
-        } else if ("tasks/task".equals(path) && exchange.getRequestMethod().equals("DELETE")) {
+        } else if ("/tasks/task".equals(path) && exchange.getRequestMethod().equals("DELETE")) {
             handleDeleteTasks(exchange);
         } else if ("/tasks/subtask".equals(path) && exchange.getRequestMethod().equals("GET")) {
             handleSubtask(exchange, gson);
@@ -66,6 +63,9 @@ public class HttpTaskServer {
             handleGetSubtasksOfEpic(exchange, gson, taskId);
         } else if ("/tasks/history".equals(path) && exchange.getRequestMethod().equals("GET")) {
             handleGetHistory(exchange, gson);
+        } else {
+            sendResponse(exchange, "Некорректный запрос", 400);
+            System.out.println("Некорректный запрос");
         }
     }
 
@@ -114,9 +114,10 @@ public class HttpTaskServer {
     }
 
     private void sendResponse(HttpExchange exchange, String responseBody, Integer rCode) throws IOException {
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
         exchange.sendResponseHeaders(rCode, responseBody.getBytes().length);
         exchange.getResponseBody().write(responseBody.getBytes());
-        exchange.getResponseBody().close();
+        exchange.close();
     }
 
     private String readRequestBody(HttpExchange exchange) throws IOException {
@@ -153,7 +154,7 @@ public class HttpTaskServer {
             case "Task" ->
                     new Task(title, description, taskStatus, id, startTime, duration);
             case "Subtask" ->
-                    new Subtask(title, description, taskStatus, id, startTime, duration, jsonObject.get("idEpic").getAsInt());
+                    new Subtask(title, description, taskStatus, id, jsonObject.get("idEpic").getAsInt(), startTime, duration);
             default ->
                     new Epic(title, description, taskStatus, id, startTime, duration);
         };
@@ -166,35 +167,5 @@ public class HttpTaskServer {
                 .serializeNulls()
                 .create();
         return gson.toJson(task);
-    }
-
-
-    public static void main(String[] args) throws IOException {
-        new HttpTaskServer();
-        try (HttpClient httpClient = HttpClient.newHttpClient()) {
-            HttpResponse<String> httpResponse = httpClient.send(getRequestGetTasks(), HttpResponse.BodyHandlers.ofString());
-        } catch (InterruptedException | IOException e) {
-            System.out.println("Ошибка отправки запроса");
-            System.out.println(e.getMessage());
-        }
-    }
-
-    private static HttpRequest getRequestAdd() {
-        String requestBody = parseTaskToJson(new Epic("titleOne", "des", TaskStatus.NEW, 4));
-        return HttpRequest
-                .newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .uri(URI.create("http://localhost:8080/tasks/task"))
-                .version(HttpClient.Version.HTTP_2)
-                .build();
-    }
-
-    private static HttpRequest getRequestGetTasks() {
-        return HttpRequest
-                .newBuilder()
-                .GET()
-                .uri(URI.create("http://localhost:8080/tasks"))
-                .version(HttpClient.Version.HTTP_1_1)
-                .build();
     }
 }

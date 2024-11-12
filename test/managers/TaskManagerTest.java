@@ -31,9 +31,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     void shouldAddTask() {
         taskManager.addTask(task);
         assertFalse(taskManager.getTasks().isEmpty(), "Task not added");
-
-        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("1", "1", TaskStatus.NEW, 1)), "Add Task With ID");
-
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("1", "1", TaskStatus.NEW, 1)), "Add Task With the same ID");
         assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(task), "Add same task");
     }
 
@@ -105,7 +103,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
         taskManager.addTask(epic);
         taskManager.addTask(new Subtask("1", "1", 2));
         taskManager.removeAllTasks();
-        assertThrows(RuntimeException.class, () -> taskManager.getMapTasks(), "tasks no empty");
+        assertTrue(taskManager.getMapTasks().isEmpty());
     }
 
     @Test
@@ -146,7 +144,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
         taskManager.addTask(task);
         taskManager.removeTaskById(1);
         assertThrows(RuntimeException.class, () -> taskManager.getTasks(), "tasks no empty");
-        assertThrows(RuntimeException.class, () -> taskManager.getMapTasks(), "tasksMap no empty");
+        assertTrue(taskManager.getMapTasks().isEmpty());
         assertTrue(taskManager.getHistoryManager().getHistory().isEmpty());
     }
 

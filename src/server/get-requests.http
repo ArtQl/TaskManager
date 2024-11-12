@@ -1,0 +1,37 @@
+### GET tasks
+GET http://localhost:8080/tasks
+Accept: application/json
+
+### GET task
+GET http://localhost:8080/tasks/task
+Accept: application/json
+
+### GET task by id
+GET http://localhost:8080/tasks/task?id=1
+Accept: application/json
+
+### GET epic
+GET http://localhost:8080/tasks/epic
+Accept: application/json
+
+### GET subtask
+GET http://localhost:8080/tasks/subtask
+Accept: application/json
+
+### GET subtask
+GET http://localhost:8080/tasks/subtask/epic?id=2
+Accept: application/json
+
+### GET history
+GET http://localhost:8080/tasks/history
+Accept: application/json
+
+### POST task
+POST http://localhost:8080/tasks/task
+Accept: application/json
+
+{"id":4,"title":"title","description":"desc","status":"NEW","duration":null,"startTime":null,"type":"Epic"}
+
+### DELETE task by id
+DELETE http://localhost:8080/tasks/task?id=4
+Accept: application/json
