@@ -6,8 +6,8 @@ import com.sun.net.httpserver.HttpServer;
 import managers.Managers;
 import managers.TaskManager;
 import model.Task;
-import server.gson_adapter.DurationAdapter;
-import server.gson_adapter.LocalDateAdapter;
+import utility.gson_adapter.DurationAdapter;
+import utility.gson_adapter.LocalDateAdapter;
 import utility.TaskParser;
 
 import java.io.BufferedReader;
@@ -66,6 +66,11 @@ public class HttpTaskServer {
             System.out.println("Некорректный запрос");
         }
     }
+
+    //    httpClient.load("tasks");
+//        HttpRequest httpRequest = HttpRequest.newBuilder().GET()
+//                .uri(URI.create(HOST + "/tasks" + apiToken)).build();
+//        return httpClient.sendRequestForResponse(httpRequest, "Ошибка при загрузке данных");
 
     private void handleAllTasks(HttpExchange exchange, Gson gson) throws IOException {
         sendResponse(exchange, gson.toJson(taskManager.getMapTasks()), 200);

@@ -18,7 +18,7 @@ public class KVTaskClient {
         apiToken = registerRequest();
     }
 
-    public String getApiToken() {
+    private String getApiToken() {
         return apiToken;
     }
 
@@ -26,7 +26,7 @@ public class KVTaskClient {
         return URI.create(String.format(requestTemplate, HOST, endpoint, key, apiToken));
     }
 
-    public String registerRequest() {
+    private String registerRequest() {
         HttpRequest httpRequest = HttpRequest.newBuilder().GET()
                 .uri(URI.create(HOST + "/register")).build();
         return sendRequestForResponse(httpRequest, "Ошибка регистрации клиента");
@@ -36,7 +36,14 @@ public class KVTaskClient {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .uri(getURI("save", key)).build();
-        sendRequest(httpRequest, "Ошибка сохранения данные");
+        sendRequest(httpRequest, "Ошибка сохранения данных");
+    }
+
+    public void remove(String key) {
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .DELETE()
+                .uri(getURI("remove", key)).build();
+        sendRequest(httpRequest, "Ошибка удаления данных");
     }
 
     public String load(String key) {
@@ -45,7 +52,7 @@ public class KVTaskClient {
         return sendRequestForResponse(httpRequest, "Ошибка при загрузке данных");
     }
 
-    public void sendRequest(HttpRequest httpRequest, String message) {
+    private void sendRequest(HttpRequest httpRequest, String message) {
         try {
             httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         } catch (InterruptedException | IOException e) {
@@ -53,7 +60,7 @@ public class KVTaskClient {
         }
     }
 
-    public String sendRequestForResponse(HttpRequest httpRequest, String message) {
+    private String sendRequestForResponse(HttpRequest httpRequest, String message) {
         try {
             HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             return httpResponse.body();
@@ -63,7 +70,7 @@ public class KVTaskClient {
         return "";
     }
 
-    public void handleException(Exception e, String message) {
+    private void handleException(Exception e, String message) {
         System.out.println(message);
         System.out.println(e.getMessage());
     }

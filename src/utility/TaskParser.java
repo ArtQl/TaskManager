@@ -1,13 +1,14 @@
 package utility;
 
 import com.google.gson.*;
+import managers.ParserException;
 import managers.backed.ManagerSaveException;
 import model.Epic;
 import model.Subtask;
 import model.Task;
 import model.TaskStatus;
-import server.gson_adapter.DurationAdapter;
-import server.gson_adapter.LocalDateAdapter;
+import utility.gson_adapter.DurationAdapter;
+import utility.gson_adapter.LocalDateAdapter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,40 +18,54 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
 
 public class TaskParser {
 
-    public static Task parseJsonToTask(String requestBody) {
-        JsonElement jsonElement = JsonParser.parseString(requestBody);
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
+    private final static Gson gson = new GsonBuilder()
+            .registerTypeAdapter(Duration.class, new DurationAdapter())
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateAdapter())
+            .setPrettyPrinting()
+            .create();
 
-        Integer id = jsonObject.get("id").getAsInt();
-        String title = jsonObject.get("title").getAsString();
-        String description = jsonObject.get("description").getAsString();
-        TaskStatus taskStatus = TaskStatus.valueOf(jsonObject.get("status").getAsString());
-        Duration duration = jsonObject.get("duration") instanceof JsonNull ? null
-                : Duration.ofSeconds(jsonObject.get("duration").getAsLong());
-        LocalDateTime startTime = jsonObject.get("startTime") instanceof JsonNull ? null
-                : LocalDateTime.parse(jsonObject.get("startTime").getAsString());
+    public static String parseTaskToJson(Task task) {
+        if (task == null) throw new ParserException("Error parse task: task == null");
+        return gson.toJson(task);
+    }
+
+    public static Task parseJsonToTask(String json) {
+        try {
+            new Gson().getAdapter(JsonElement.class).fromJson(json);
+        } catch (JsonSyntaxException | IOException e) {
+            throw new ParserException("Wrong json str: JsonTask not as JsonElement");
+        }
+
+        JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
         return switch (jsonObject.get("type").getAsString()) {
-            case "Task" ->
-                    new Task(title, description, taskStatus, id, startTime, duration);
-            case "Subtask" ->
-                    new Subtask(title, description, taskStatus, id, jsonObject.get("idEpic").getAsInt(), startTime, duration);
-            default ->
-                    new Epic(title, description, taskStatus, id, startTime, duration);
+            case "Epic" -> gson.fromJson(json, Epic.class);
+            case "Subtask" -> gson.fromJson(json, Subtask.class);
+            default -> gson.fromJson(json, Task.class);
         };
     }
 
-    public static String parseTaskToJson(Task task) {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Duration.class, new DurationAdapter())
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateAdapter())
-                .serializeNulls()
-                .create();
-        return gson.toJson(task);
+    public static String parseMapTasksToJson(Map<Integer, Task> tasks) {
+
+        return gson.toJson(tasks);
+    }
+
+    public static Map<Integer, Task> parseJsonToMapTasks(String json) {
+        try {
+            new Gson().getAdapter(JsonElement.class).fromJson(json);
+        } catch (JsonSyntaxException | IOException e) {
+            throw new ParserException("Wrong json str: JsonMapTask not as JsonElement");
+        }
+        JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
+        Map<Integer, Task> map = new HashMap<>();
+        jsonObject.entrySet().forEach(item -> map.put(
+                Integer.parseInt(item.getKey()),
+                parseJsonToTask(gson.toJson(item.getValue()))));
+        return map;
     }
 
     public static String parseTaskToString(Task task) {

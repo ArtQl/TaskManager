@@ -15,50 +15,48 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class HTTPTaskManager extends FileBackedTaskManager {
-    private final KVTaskClient httpClient;
+    private final KVTaskClient kvTaskClient;
 
 
     public HTTPTaskManager(StorageManager fileStorageManager, String uri) {
         super(fileStorageManager);
-        this.httpClient = new KVTaskClient(uri);
+        kvTaskClient = new KVTaskClient(uri);
+        loadTasks();
     }
 
-    public KVTaskClient getHttpClient() {
-        return httpClient;
-    }
-
-    @Override
-    public List<Task> getTasks() {
-        httpClient.load("tasks");
-//        HttpRequest httpRequest = HttpRequest.newBuilder().GET()
-//                .uri(URI.create(HOST + "/tasks" + apiToken)).build();
-//        return httpClient.sendRequestForResponse(httpRequest, "Ошибка при загрузке данных");
-        return super.getTasks();
+    private void loadTasks() {
+        // TODO parse
+        String tasksData = kvTaskClient.load("allTasks");
     }
 
     @Override
     public void removeTaskById(int id) {
         super.removeTaskById(id);
+        kvTaskClient.remove(String.valueOf(id));
     }
 
     @Override
     public void removeEpics() {
         super.removeEpics();
+        kvTaskClient.remove("Epics");
     }
 
     @Override
     public void removeSubtasks() {
         super.removeSubtasks();
+        kvTaskClient.remove("Subtasks");
     }
 
     @Override
     public void removeTasks() {
         super.removeTasks();
+        kvTaskClient.remove("Tasks");
     }
 
     @Override
     public void removeAllTasks() {
         super.removeAllTasks();
+        kvTaskClient.remove("AllTasks");
     }
 
     @Override
@@ -69,20 +67,41 @@ public class HTTPTaskManager extends FileBackedTaskManager {
     @Override
     public void updateTask(Task task) {
         super.updateTask(task);
+        if (task instanceof Epic) kvTaskClient.save("Epics", task.toString());
+        else if (task instanceof Subtask) kvTaskClient.save("Subtasks", task.toString());
+        else kvTaskClient.save("Tasks", task.toString());
+        kvTaskClient.save("AllTasks", tasks.toString());
+        //todo
+    }
+
+    @Override
+    public List<Task> getTasks() {
+        List<Task> map = super.getTasks();
+        kvTaskClient.save("History", "");
+        return map;
+        // TODO parse
     }
 
     @Override
     public List<Epic> getEpics() {
-        return super.getEpics();
+        List<Epic> map = super.getEpics();
+        kvTaskClient.save("History", "");
+        return map;
     }
 
     @Override
     public List<Subtask> getSubtasks() {
-        return super.getSubtasks();
+        List<Subtask> map = super.getSubtasks();
+        kvTaskClient.save("History", "");
+        return map;
     }
 
     @Override
     public void addTask(Task task) {
         super.addTask(task);
+        if (task instanceof Epic) kvTaskClient.save("Epics", tasks.values().stream().filter(val -> val instanceof Epic).toList().toString());
+        else if (task instanceof Subtask) kvTaskClient.save("Subtasks", task.toString());
+        else kvTaskClient.save("Tasks", task.toString());
+        kvTaskClient.save("AllTasks", tasks.toString());
     }
 }

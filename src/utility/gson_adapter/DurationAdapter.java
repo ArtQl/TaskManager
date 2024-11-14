@@ -1,4 +1,4 @@
-package server.gson_adapter;
+package utility.gson_adapter;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;

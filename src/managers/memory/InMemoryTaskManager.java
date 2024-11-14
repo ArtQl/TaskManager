@@ -54,7 +54,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (task.getId() != null && tasks.containsKey(task.getId()) || tasks.containsValue(task))
             throw new IllegalArgumentException("Task already added in tasks");
         if (task.getStartTime().isPresent() && task.getEndTime().isPresent() &&
-                timeIntervalTracker.hasOverlap(task))
+                timeIntervalTracker.hasOverlap(task) && !(task instanceof Subtask))
             throw new IllegalArgumentException("Tasks overlap time");
         if (task instanceof Subtask subtask) {
             if (!tasks.containsKey(subtask.getIdEpic())) {

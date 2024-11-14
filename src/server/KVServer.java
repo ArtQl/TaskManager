@@ -3,10 +3,9 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import server.gson_adapter.DurationAdapter;
-import server.gson_adapter.LocalDateAdapter;
+import utility.gson_adapter.DurationAdapter;
+import utility.gson_adapter.LocalDateAdapter;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -31,75 +30,63 @@ public class KVServer {
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateAdapter())
                 .serializeNulls().create();
         server = HttpServer.create(new InetSocketAddress("localhost", PORT), 0);
-        server.createContext("/", this::handleTasks);
+        server.createContext("/register", this::handleRegister);
+        server.createContext("/save", this::handleSave);
+        server.createContext("/load", this::handleLoad);
+        server.createContext("/remove", this::handleRemove);
     }
 
-    private void handleTasks(HttpExchange exchange) throws IOException {
-        String path = exchange.getRequestURI().getPath();
-        String query = exchange.getRequestURI().getQuery();
-//        int taskId = query == null || query.isEmpty() ? 0 : Integer.parseInt(parseQueryParams(query).get("id"));
-        if ("/register".equals(path)) {
-            handleRegister(exchange);
-        } else if("/save".equals(path)) {
-            handleSave(exchange);
-        } else if("/load".equals(path)) {
-            handleLoad(exchange);
-        } else if ("/tasks".equals(path) && exchange.getRequestMethod().equals("GET")) {
-            handleAllTasks(exchange, gson);
+    private void handleRegister(HttpExchange exchange) throws IOException {
+        System.out.println("\n/register");
+        if ("GET".equals(exchange.getRequestMethod())) sendText(exchange, apiToken);
+        else sendResponse(exchange, 405, "/register need GET-запрос: " + exchange.getRequestMethod());
+    }
+
+    private void handleRemove(HttpExchange h) throws IOException {
+        String key = h.getRequestURI().getPath().substring("/load/".length());
+        if (hasNotAuth(h, "remove")) {
+            sendResponse(h, 403, "Запрос неавторизован, нужен API_TOKEN в query со значением апи-ключа");
+        } else if (!"REMOVE".equals(h.getRequestMethod())) {
+            sendResponse(h, 405, "/remove ждёт REMOVE-запрос, а получил: " + h.getRequestMethod());
+        } else if (key.isEmpty()) {
+            sendResponse(h, 400, "Key для удаления пустой. key указывается в пути: /save/{key}");
+        } else if (!data.containsKey(key)) {
+            sendResponse(h, 400, "Key для удаления отсутствует в базе");
         } else {
-            sendResponse(exchange, 400, "Некорректный запрос");
+            sendResponse(h, 200, "Data:\n" + data.remove(key));
         }
-
-    }
-
-    private void handleAllTasks(HttpExchange exchange, Gson gson) throws IOException {
-        sendResponse(exchange, 200, gson.toJson(data.get("all tasks")));
     }
 
     private void handleLoad(HttpExchange h) throws IOException {
-        System.out.println("\n/load");
-        if (hasNotAuth(h)) {
+        String key = h.getRequestURI().getPath().substring("/load/".length());
+        if (hasNotAuth(h, "load")) {
             sendResponse(h, 403, "Запрос неавторизован, нужен API_TOKEN в query со значением апи-ключа");
-        } else if ("GET".equals(h.getRequestMethod())) {
-            String key = h.getRequestURI().getPath().substring("/load/".length());
-
-            if (key.isEmpty()) {
-                sendResponse(h, 400, "Key для загрузки пустой. key указывается в пути: /save/{key}");
-            } else if (!data.containsKey(key)) {
-                sendResponse(h, 400, "Key для загрузки отсутствует в базе");
-            } else {
-                sendResponse(h, 200, "Data:\n" + data.get(key));
-            }
-        } else {
+        } else if (!"GET".equals(h.getRequestMethod())) {
             sendResponse(h, 405, "/load ждёт GET-запрос, а получил: " + h.getRequestMethod());
+        } else if (key.isEmpty()) {
+            sendResponse(h, 400, "Key для загрузки пустой. key указывается в пути: /save/{key}");
+        } else if (!data.containsKey(key)) {
+            sendResponse(h, 400, "Key для загрузки отсутствует в базе");
+        } else {
+            sendResponse(h, 200, "Data:\n" + data.get(key));
         }
     }
 
     private void handleSave(HttpExchange h) throws IOException {
-        System.out.println("\n/save");
-        if (hasNotAuth(h)) {
+        String key = h.getRequestURI().getPath().substring("/save/".length());
+        String value = readText(h);
+        if (hasNotAuth(h, "save")) {
             sendResponse(h, 403, "Запрос неавторизован, нужен API_TOKEN в query со значением апи-ключа");
-        } else if ("POST".equals(h.getRequestMethod())) {
-            String key = h.getRequestURI().getPath().substring("/save/".length());
-            String value = readText(h);
-
-            if (key.isEmpty()) {
-                sendResponse(h, 400, "Key для сохранения пустой. key указывается в пути: /save/{key}");
-            } else if (value.isEmpty()) {
-                sendResponse(h, 400, "Value для сохранения пустой. value указывается в теле запроса");
-            } else {
-                data.put(key, value);
-                sendResponse(h, 200, "Значение для ключа " + key + " успешно обновлено!");
-            }
-        } else {
+        } else if (!"POST".equals(h.getRequestMethod())) {
             sendResponse(h, 405, "/save ждёт POST-запрос, а получил: " + h.getRequestMethod());
+        } else if (key.isEmpty()) {
+            sendResponse(h, 400, "Key для сохранения пустой. key указывается в пути: /save/{key}");
+        } else if (value.isEmpty()) {
+            sendResponse(h, 400, "Value для сохранения пустой. value указывается в теле запроса");
+        } else {
+            data.put(key, value);
+            sendResponse(h, 200, "Значение для ключа " + key + " успешно обновлено!");
         }
-    }
-
-    private void handleRegister(HttpExchange h) throws IOException {
-        System.out.println("\n/register");
-        if ("GET".equals(h.getRequestMethod())) sendText(h, apiToken);
-        else sendResponse(h, 405, "/register need GET-запрос: " + h.getRequestMethod());
     }
 
     public void start() {
@@ -119,7 +106,8 @@ public class KVServer {
         return "" + System.currentTimeMillis();
     }
 
-    protected boolean hasNotAuth(HttpExchange h) {
+    protected boolean hasNotAuth(HttpExchange h, String path) {
+        System.out.println("\n/" + path);
         String rawQuery = h.getRequestURI().getRawQuery();
         return rawQuery == null || (!rawQuery.contains("API_TOKEN=" + apiToken) && !rawQuery.contains("API_TOKEN=DEBUG"));
     }

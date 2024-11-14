@@ -1,4 +1,4 @@
-package server.gson_adapter;
+package utility.gson_adapter;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -21,6 +21,6 @@ public class LocalDateAdapter extends TypeAdapter<LocalDateTime> {
         if (dateTime == null || dateTime.isEmpty())
             return null;
         else
-            return LocalDateTime.parse(jsonReader.nextString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            return LocalDateTime.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 }
