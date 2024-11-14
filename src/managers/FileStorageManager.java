@@ -4,6 +4,7 @@ import managers.backed.ManagerSaveException;
 import model.Epic;
 import model.Subtask;
 import model.Task;
+import utility.TaskParser;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -48,12 +49,12 @@ public class FileStorageManager implements StorageManager {
 
     public Map<Integer, Task> load() {
         Map<Integer, Task> tasks = new HashMap<>();
-        List<String> tasksStr = TaskParser.parseFileToString(file);
+        List<String> tasksStr = TaskParser.parseFileToCSVString(file);
         if (tasksStr.isEmpty()) return null;
         tasksStr.removeLast();
         if (tasksStr.getLast().isBlank()) tasksStr.removeLast();
         tasksStr.forEach(str -> {
-            Task task = TaskParser.parseTaskFromString(str);
+            Task task = TaskParser.parseTaskFromCSVString(str);
             if (task instanceof Subtask subtask)
                 ((Epic) tasks.get(subtask.getIdEpic())).addSubtask(subtask);
             tasks.put(task.getId(), task);
@@ -62,7 +63,7 @@ public class FileStorageManager implements StorageManager {
     }
 
     public List<Task> loadHistory() {
-        String tasksStr = TaskParser.parseFileToString(file).getLast();
+        String tasksStr = TaskParser.parseFileToCSVString(file).getLast();
         if (tasksStr.isBlank()) return null;
         List<Integer> historyId = Arrays.stream(tasksStr.split(",")).map(Integer::parseInt).toList();
         Map<Integer, Task> tasks = load();

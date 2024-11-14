@@ -5,12 +5,10 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import managers.Managers;
 import managers.TaskManager;
-import model.Epic;
-import model.Subtask;
 import model.Task;
-import model.TaskStatus;
 import server.gson_adapter.DurationAdapter;
 import server.gson_adapter.LocalDateAdapter;
+import utility.TaskParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -108,7 +106,7 @@ public class HttpTaskServer {
     }
 
     private void handleAddTask(HttpExchange exchange) throws IOException {
-        Task task = parseJsonToTask(readRequestBody(exchange));
+        Task task = TaskParser.parseJsonToTask(readRequestBody(exchange));
         taskManager.addTask(task);
         sendResponse(exchange, "Task added", 201);
     }
@@ -136,36 +134,5 @@ public class HttpTaskServer {
         return Arrays.stream(array)
                 .map(param -> param.split("="))
                 .collect(Collectors.toMap(param -> param[0], param -> param[1]));
-    }
-
-    private Task parseJsonToTask(String requestBody) {
-        JsonElement jsonElement = JsonParser.parseString(requestBody);
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-
-        Integer id = jsonObject.get("id").getAsInt();
-        String title = jsonObject.get("title").getAsString();
-        String description = jsonObject.get("description").getAsString();
-        TaskStatus taskStatus = TaskStatus.valueOf(jsonObject.get("status").getAsString());
-        Duration duration = jsonObject.get("duration") instanceof JsonNull ? null
-                : Duration.ofSeconds(jsonObject.get("duration").getAsLong());
-        LocalDateTime startTime = jsonObject.get("startTime") instanceof JsonNull ? null
-                : LocalDateTime.parse(jsonObject.get("startTime").getAsString());
-        return switch (jsonObject.get("type").getAsString()) {
-            case "Task" ->
-                    new Task(title, description, taskStatus, id, startTime, duration);
-            case "Subtask" ->
-                    new Subtask(title, description, taskStatus, id, jsonObject.get("idEpic").getAsInt(), startTime, duration);
-            default ->
-                    new Epic(title, description, taskStatus, id, startTime, duration);
-        };
-    }
-
-    private static String parseTaskToJson(Task task) {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Duration.class, new DurationAdapter())
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateAdapter())
-                .serializeNulls()
-                .create();
-        return gson.toJson(task);
     }
 }

@@ -34,14 +34,6 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public TreeSet<Task> getPrioritizedTasks() {
-//        if (tasks.isEmpty()) return new ArrayList<>();
-//        List<Task> prioritizedList = new ArrayList<>(tasks.values().stream()
-//                .filter(task -> task.getStartTime().isPresent())
-//                .sorted(Comparator.comparing(task -> task.getStartTime().get())).toList());
-//
-//        prioritizedList.addAll(tasks.values().stream()
-//                .filter(task -> task.getStartTime().isEmpty()).toList());
-//        return prioritizedList;
         return priorityTask;
     }
 
@@ -76,24 +68,6 @@ public class InMemoryTaskManager implements TaskManager {
         priorityTask.add(task);
         timeIntervalTracker.addTaskInInterval(task);
     }
-
-//    private boolean hasOverlap(Task newTask) {
-//        LocalDateTime newStart = newTask.getStartTime().orElse(null);
-//        LocalDateTime newEnd = newTask.getEndTime().orElse(null);
-//        if (newStart == null && newEnd == null) return false;
-//        for (Task task : priorityTask) {
-//            if (task.equals(newTask)) continue;
-//            LocalDateTime existingStart = task.getStartTime().orElse(null);
-//            LocalDateTime existingEnd = task.getEndTime().orElse(null);
-//            if (existingStart != null && existingStart.isAfter(newEnd)) break;
-//
-//            if (existingStart != null && existingEnd != null)
-//                //newStart.isBefore(existEnd) && newEnd.isAfter(existStart)
-//                if (!(newEnd.isBefore(existingStart) || newStart.isAfter(existingEnd)))
-//                    return true;
-//        }
-//        return false;
-//    }
 
     @Override
     public void updateTimeTask(Task task, LocalDateTime localDateTime, Duration duration) {
@@ -254,4 +228,22 @@ public class InMemoryTaskManager implements TaskManager {
     public int hashCode() {
         return Objects.hash(tasks, id, historyManager);
     }
+
+    //    private boolean hasOverlap(Task newTask) {
+//        LocalDateTime newStart = newTask.getStartTime().orElse(null);
+//        LocalDateTime newEnd = newTask.getEndTime().orElse(null);
+//        if (newStart == null && newEnd == null) return false;
+//        for (Task task : priorityTask) {
+//            if (task.equals(newTask)) continue;
+//            LocalDateTime existingStart = task.getStartTime().orElse(null);
+//            LocalDateTime existingEnd = task.getEndTime().orElse(null);
+//            if (existingStart != null && existingStart.isAfter(newEnd)) break;
+//
+//            if (existingStart != null && existingEnd != null)
+//                //newStart.isBefore(existEnd) && newEnd.isAfter(existStart)
+//                if (!(newEnd.isBefore(existingStart) || newStart.isAfter(existingEnd)))
+//                    return true;
+//        }
+//        return false;
+//    }
 }

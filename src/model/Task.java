@@ -1,7 +1,9 @@
 package model;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,8 +12,8 @@ import java.util.Optional;
 
 public class Task {
     protected Integer id;
-    protected final String title;
-    protected final String description;
+    protected String title;
+    protected String description;
     protected TaskStatus status;
     protected Duration duration;
     protected LocalDateTime startTime;

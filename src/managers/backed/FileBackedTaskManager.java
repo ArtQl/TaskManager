@@ -1,6 +1,7 @@
 package managers.backed;
 
 import managers.FileStorageManager;
+import managers.StorageManager;
 import managers.memory.InMemoryTaskManager;
 import model.Epic;
 import model.Subtask;
@@ -11,9 +12,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
-    FileStorageManager fileStorageManager;
+    StorageManager fileStorageManager;
 
-    public FileBackedTaskManager(FileStorageManager fileStorageManager) {
+    public FileBackedTaskManager(StorageManager fileStorageManager) {
         super();
         this.fileStorageManager = fileStorageManager;
         checkSubtasks();
@@ -88,7 +89,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         fileStorageManager.save(this);
     }
 
-    public FileStorageManager getStorageManager() {
+    public StorageManager getStorageManager() {
         return fileStorageManager;
     }
 

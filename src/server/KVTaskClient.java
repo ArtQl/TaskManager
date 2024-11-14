@@ -7,53 +7,64 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class KVTaskClient {
-    private String apiToken;
+    private final HttpClient httpClient;
+    private final String apiToken;
+    private final String HOST;
+    private final static String requestTemplate = "%s/%s/%s?API_TOKEN=%s";
 
-    public KVTaskClient(URI uri) {
-        HttpRequest httpRequest = HttpRequest
-                .newBuilder()
-                .GET()
-                .uri(uri)
-                .version(HttpClient.Version.HTTP_2)
-                .build();
-
-        try (HttpClient httpClient = HttpClient.newHttpClient()) {
-            HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            apiToken = httpResponse.body();
-        } catch (InterruptedException | IOException e) {
-            System.out.println("Ошибка отправки запроса");
-            System.out.println(e.getMessage());
-        }
+    public KVTaskClient(String uri) {
+        HOST = uri;
+        httpClient = HttpClient.newHttpClient();
+        apiToken = registerRequest();
     }
 
-    public void put(String key, String json) {
-         HttpRequest httpRequest = HttpRequest
-                .newBuilder()
+    public String getApiToken() {
+        return apiToken;
+    }
+
+    private URI getURI(String endpoint, String key) {
+        return URI.create(String.format(requestTemplate, HOST, endpoint, key, apiToken));
+    }
+
+    public String registerRequest() {
+        HttpRequest httpRequest = HttpRequest.newBuilder().GET()
+                .uri(URI.create(HOST + "/register")).build();
+        return sendRequestForResponse(httpRequest, "Ошибка регистрации клиента");
+    }
+
+    public void save(String key, String json) {
+        HttpRequest httpRequest = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString(json))
-                .uri(URI.create("http://localhost:8080/save/" + key + "?API_TOKEN=" + apiToken))
-                .version(HttpClient.Version.HTTP_2)
-                .build();
-        try (HttpClient httpClient = HttpClient.newHttpClient()) {
-            httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-        } catch (InterruptedException | IOException e) {
-            System.out.println("Ошибка отправки запроса: " + e);
-        }
+                .uri(getURI("save", key)).build();
+        sendRequest(httpRequest, "Ошибка сохранения данные");
     }
 
     public String load(String key) {
-        String json = "";
-        HttpRequest httpRequest = HttpRequest
-                .newBuilder()
-                .GET()
-                .uri(URI.create("http://localhost:8080/load/" + key + "?API_TOKEN=" + apiToken))
-                .version(HttpClient.Version.HTTP_2)
-                .build();
-        try (HttpClient httpClient = HttpClient.newHttpClient()) {
-            HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            json = httpResponse.body();
+        HttpRequest httpRequest = HttpRequest.newBuilder().GET()
+                .uri(getURI("load", key)).build();
+        return sendRequestForResponse(httpRequest, "Ошибка при загрузке данных");
+    }
+
+    public void sendRequest(HttpRequest httpRequest, String message) {
+        try {
+            httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         } catch (InterruptedException | IOException e) {
-            System.out.println("Ошибка отправки запроса: " + e);
+            handleException(e, message);
         }
-        return json;
+    }
+
+    public String sendRequestForResponse(HttpRequest httpRequest, String message) {
+        try {
+            HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            return httpResponse.body();
+        } catch (InterruptedException | IOException e) {
+            handleException(e, message);
+        }
+        return "";
+    }
+
+    public void handleException(Exception e, String message) {
+        System.out.println(message);
+        System.out.println(e.getMessage());
     }
 }
