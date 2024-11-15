@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -204,24 +205,27 @@ abstract public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldGetPrioritizeTasks() {
+        TreeSet<Task> treeSet = taskManager.getPrioritizedTasks();
         taskManager.addTask(new Task("task3", "desc"));
         taskManager.addTask(new Task("task3", "desc", LocalDateTime.of(2024, 10, 10, 10, 0, 0), Duration.ofHours(1)));
 
         taskManager.addTask(new Task("task1", "desc"));
-        taskManager.updateTimeTask(taskManager.getTaskById(3), LocalDateTime.of(2024, 10, 15, 10, 0, 0), Duration.ofDays(1));
+        taskManager.updateTask(new Task("task1", "desjc", TaskStatus.NEW, 3, LocalDateTime.of(2024, 10, 15, 10, 0, 0), Duration.ofDays(1)));
 
         taskManager.addTask(new Task("task2", "desc"));
-        taskManager.updateTimeTask(taskManager.getTaskById(4), (LocalDateTime.of(2024, 12, 10, 10, 0, 0)), Duration.ofDays(2));
+        taskManager.updateTask(new Task("task2", "dejsc", TaskStatus.IN_PROGRESS, 4, LocalDateTime.of(2024, 12, 10, 10, 0, 0), Duration.ofDays(2)));
 
         taskManager.addTask(epic);
         taskManager.addTask(new Subtask("Sub1", "desc", 5));
-        taskManager.updateTimeTask(taskManager.getTaskById(6), LocalDateTime.of(2024, 9, 15, 10, 0, 0), Duration.ofDays(3));
+        taskManager.updateTask(new Subtask("Sub1", "dejsc", TaskStatus.NEW, 6, 5, LocalDateTime.of(2024, 9, 15, 10, 0, 0), Duration.ofDays(3)));
 
         taskManager.addTask(new Subtask("Sub2", "desc", 5));
-        taskManager.updateTimeTask(taskManager.getTaskById(7), LocalDateTime.of(2024, 9, 10, 10, 0, 0), Duration.ofDays(4));
+        taskManager.updateTask(new Subtask("Sub2", "djesc", TaskStatus.NEW, 7, 5, LocalDateTime.of(2024, 9, 10, 10, 0, 0), Duration.ofDays(4)));
 
         taskManager.addTask(new Subtask("Sub3", "desc", 5));
-        taskManager.addTask(new Task("task1", "desc", LocalDateTime.of(2023, 10, 10, 10, 0, 0), Duration.ofHours(10)));
+        taskManager.addTask(new Task("task1", "desjc", LocalDateTime.of(2023, 10, 10, 10, 0, 0), Duration.ofHours(10)));
+
+        treeSet.forEach(System.out::println);
 
         assertEquals(9, taskManager.getPrioritizedTasks().size());
         assertEquals(taskManager.getTaskById(9), taskManager.getPrioritizedTasks().getFirst());

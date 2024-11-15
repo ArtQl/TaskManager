@@ -2,6 +2,7 @@ package managers;
 
 import managers.backed.FileBackedTaskManager;
 import model.Subtask;
+import model.Task;
 import model.TaskStatus;
 import org.junit.jupiter.api.Test;
 
@@ -37,24 +38,18 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     @Test
     void getTime() {
         taskManager.addTask(task);
-        taskManager.updateTimeTask(task,
-                LocalDateTime.of(2024, 1, 1, 10,10, 0),
-                Duration.ofHours(5));
+        taskManager.updateTask(new Task("Tas", "de", TaskStatus.NEW, 1, LocalDateTime.of(2024, 1, 1, 10,10, 0), Duration.ofHours(5)));
 
         taskManager.addTask(epic);
         taskManager.addTask(new Subtask("SubOne", "Hello", 2));
-        taskManager.updateTimeTask(taskManager.getTaskById(3),
-                LocalDateTime.of(2024, 1, 15, 15,10, 0),
-                Duration.ofDays(10).plusMinutes(20));
+        taskManager.updateTask(new Subtask("SubOnea", "Hello", TaskStatus.NEW, 3 , 2, LocalDateTime.of(2024, 1, 15, 15,10, 0), Duration.ofDays(10).plusMinutes(20)));
 
         taskManager.addTask(new Subtask("SubTwo", "Hello", 2));
-        taskManager.updateTimeTask(taskManager.getTaskById(4),
-                LocalDateTime.of(2024, 1, 30, 18,10, 0),
-                Duration.ofDays(15).plusHours(3).plusMinutes(30));
+        taskManager.updateTask(new Subtask("SubTwoa", "Hello", TaskStatus.NEW, 4, 2, LocalDateTime.of(2024, 1, 30, 18,10, 0), Duration.ofDays(15).plusHours(3).plusMinutes(30)));
 
-        taskManager.getSubtasks();
-        taskManager.getEpics();
-        taskManager.getTasks();
+        System.out.println(taskManager.getSubtasks());
+        System.out.println(taskManager.getEpics());
+        System.out.println(taskManager.getTasks());
     }
 
     @Test

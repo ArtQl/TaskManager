@@ -1,14 +1,15 @@
-package server;
+package managers.server;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import managers.Managers;
 import managers.TaskManager;
 import model.Task;
+import utility.TaskParser;
 import utility.gson_adapter.DurationAdapter;
 import utility.gson_adapter.LocalDateAdapter;
-import utility.TaskParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;

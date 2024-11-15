@@ -1,4 +1,4 @@
-package server;
+package managers.server;
 
 import managers.Managers;
 import managers.TaskManager;

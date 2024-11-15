@@ -1,9 +1,11 @@
 package managers;
 
 import managers.backed.FileBackedTaskManager;
+import managers.backed.FileStorageManager;
 import managers.history.HistoryManager;
 import managers.history.InMemoryHistoryManager;
-import server.HTTPTaskManager;
+import managers.server.HTTPTaskManager;
+import utility.TaskParser;
 
 import java.io.File;
 
@@ -23,16 +25,14 @@ public class Managers {
     }
 
     public static StorageManager getDefaultStorageManager() {
-//        return new ServerStorageManager(uri);
         return new FileStorageManager(fileStorage);
     }
 
-    public static HTTPTaskManager loadFromServer() {
+    public static TaskManager loadFromServer() {
         HTTPTaskManager httpTaskManager = new HTTPTaskManager(storageManager, uri);
-        if (storageManager.load() != null)
-            httpTaskManager.getMapTasks().putAll(storageManager.load());
-        if (storageManager.loadHistory() != null)
-            storageManager.loadHistory().forEach(httpTaskManager.getHistoryManager()::add);
+        httpTaskManager.getMapTasks().putAll(TaskParser.parseJsonToTasks(httpTaskManager.getKvTaskClient().load("AllTasks")));
+        TaskParser.parseJsonToTasks(httpTaskManager.getKvTaskClient().load("History"))
+                .values().forEach(httpTaskManager.getHistoryManager()::add);
         httpTaskManager.setId();
         return httpTaskManager;
     }

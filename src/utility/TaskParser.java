@@ -18,7 +18,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class TaskParser {
@@ -26,7 +29,6 @@ public class TaskParser {
     private final static Gson gson = new GsonBuilder()
             .registerTypeAdapter(Duration.class, new DurationAdapter())
             .registerTypeAdapter(LocalDateTime.class, new LocalDateAdapter())
-            .setPrettyPrinting()
             .create();
 
     public static String parseTaskToJson(Task task) {
@@ -49,12 +51,12 @@ public class TaskParser {
         };
     }
 
-    public static String parseMapTasksToJson(Map<Integer, Task> tasks) {
-
+    public static String parseTasksToJson(Map<Integer, Task> tasks) {
         return gson.toJson(tasks);
     }
 
-    public static Map<Integer, Task> parseJsonToMapTasks(String json) {
+    public static Map<Integer, Task> parseJsonToTasks(String json) {
+        if(json.isBlank()) return new HashMap<>();
         try {
             new Gson().getAdapter(JsonElement.class).fromJson(json);
         } catch (JsonSyntaxException | IOException e) {
@@ -67,6 +69,25 @@ public class TaskParser {
                 parseJsonToTask(gson.toJson(item.getValue()))));
         return map;
     }
+
+    public static String parseTasksToJson(List<Task> tasks) {
+        return gson.toJson(tasks);
+    }
+
+    public static List<Task> parseJsonToListTasks(String json) {
+        if(json.isBlank()) return new ArrayList<>();
+        try {
+            new Gson().getAdapter(JsonElement.class).fromJson(json);
+        } catch (JsonSyntaxException | IOException e) {
+            throw new ParserException("Wrong json str: JsonMapTask not as JsonElement");
+        }
+        JsonArray jsonObject = JsonParser.parseString(json).getAsJsonArray();
+        List<Task> list = new ArrayList<>();
+        jsonObject.forEach(item -> list.add(parseJsonToTask(gson.toJson(item))));
+        return list;
+    }
+
+
 
     public static String parseTaskToString(Task task) {
         List<String> list = new ArrayList<>();

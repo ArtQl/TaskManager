@@ -1,4 +1,4 @@
-package server;
+package managers.server;
 
 import java.io.IOException;
 import java.net.URI;
@@ -7,14 +7,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class KVTaskClient {
-    private final HttpClient httpClient;
     private final String apiToken;
     private final String HOST;
     private final static String requestTemplate = "%s/%s/%s?API_TOKEN=%s";
 
     public KVTaskClient(String uri) {
         HOST = uri;
-        httpClient = HttpClient.newHttpClient();
         apiToken = registerRequest();
     }
 
@@ -41,8 +39,7 @@ public class KVTaskClient {
 
     public void remove(String key) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .DELETE()
-                .uri(getURI("remove", key)).build();
+                .DELETE().uri(getURI("delete", key)).build();
         sendRequest(httpRequest, "Ошибка удаления данных");
     }
 
@@ -53,7 +50,7 @@ public class KVTaskClient {
     }
 
     private void sendRequest(HttpRequest httpRequest, String message) {
-        try {
+        try(HttpClient httpClient = HttpClient.newHttpClient()) {
             httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         } catch (InterruptedException | IOException e) {
             handleException(e, message);
@@ -61,9 +58,9 @@ public class KVTaskClient {
     }
 
     private String sendRequestForResponse(HttpRequest httpRequest, String message) {
-        try {
+        try(HttpClient httpClient = HttpClient.newHttpClient()) {
             HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            return httpResponse.body();
+            if (httpResponse.statusCode() == 200) return httpResponse.body();
         } catch (InterruptedException | IOException e) {
             handleException(e, message);
         }

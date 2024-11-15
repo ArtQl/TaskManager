@@ -1,13 +1,8 @@
 package utility;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import managers.ParserException;
-import managers.TaskManager;
 import managers.memory.InMemoryTaskManager;
 import model.Epic;
 import model.Subtask;
@@ -22,6 +17,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class ParserTest {
 
@@ -71,12 +68,12 @@ class ParserTest {
         assertThrows(ParserException.class, () -> TaskParser.parseJsonToTask("   "));
         assertThrows(ParserException.class, () -> TaskParser.parseJsonToTask("/asdfkj"));
 
-        assertThrows(ParserException.class, () -> TaskParser.parseJsonToMapTasks(""));
-        assertThrows(ParserException.class, () -> TaskParser.parseJsonToMapTasks("   "));
-        assertThrows(ParserException.class, () -> TaskParser.parseJsonToMapTasks("/asdfkj"));
+        assertTrue(TaskParser.parseJsonToTasks("").isEmpty());
+        assertTrue(TaskParser.parseJsonToTasks("   ").isEmpty());
+        assertThrows(ParserException.class, () -> TaskParser.parseJsonToTasks("/asdfkj"));
 
-        String json = TaskParser.parseMapTasksToJson(taskManager.getMapTasks());
-        Map<Integer, Task> map = TaskParser.parseJsonToMapTasks(json);
+        String json = TaskParser.parseTasksToJson(taskManager.getMapTasks());
+        Map<Integer, Task> map = TaskParser.parseJsonToTasks(json);
         assertEquals(taskManager.getMapTasks(), map);
     }
 

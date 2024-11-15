@@ -14,7 +14,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     StorageManager fileStorageManager;
 
     public FileBackedTaskManager(StorageManager fileStorageManager) {
-        super();
         this.fileStorageManager = fileStorageManager;
         checkSubtasks();
     }
@@ -53,12 +52,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateTimeTask(Task task, LocalDateTime localDateTime, Duration duration) {
-        super.updateTimeTask(task, localDateTime, duration);
-        fileStorageManager.save(this);
-    }
-
-    @Override
     public void removeAllTasks() {
         super.removeAllTasks();
         fileStorageManager.save(this);
@@ -83,19 +76,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void removeTaskById(int id) {
-        super.removeTaskById(id);
+    public Task removeTaskById(int id) {
+        Task task = super.removeTaskById(id);
         fileStorageManager.save(this);
+        return task;
     }
 
     public StorageManager getStorageManager() {
         return fileStorageManager;
-    }
-
-    private void checkSubtasks() {
-        List<Subtask> subtasks = getMapTasks().values().stream()
-                .filter(task -> task instanceof Subtask)
-                .map(task -> (Subtask) task).toList();
-        subtasks.forEach(task -> ((Epic) getMapTasks().get(task.getIdEpic())).addSubtask(task));
     }
 }
