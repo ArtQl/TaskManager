@@ -24,8 +24,10 @@ import java.util.stream.Collectors;
 public class HttpTaskServer {
     private final TaskManager taskManager;
     private final Gson gson;
+    private final KVTaskClient kvTaskClient;
 
-    public HttpTaskServer() throws IOException {
+    public HttpTaskServer(KVTaskClient kvTaskClient) throws IOException {
+        this.kvTaskClient = kvTaskClient;
         taskManager = Managers.getDefault();
         gson = new GsonBuilder()
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
@@ -67,11 +69,6 @@ public class HttpTaskServer {
             System.out.println("Некорректный запрос");
         }
     }
-
-    //    httpClient.load("tasks");
-//        HttpRequest httpRequest = HttpRequest.newBuilder().GET()
-//                .uri(URI.create(HOST + "/tasks" + apiToken)).build();
-//        return httpClient.sendRequestForResponse(httpRequest, "Ошибка при загрузке данных");
 
     private void handleAllTasks(HttpExchange exchange, Gson gson) throws IOException {
         sendResponse(exchange, gson.toJson(taskManager.getMapTasks()), 200);
