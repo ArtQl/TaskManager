@@ -2,7 +2,6 @@ package model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,11 +10,12 @@ import java.util.Optional;
 
 public class Task {
     protected Integer id;
-    protected final String title;
-    protected final String description;
+    protected String title;
+    protected String description;
     protected TaskStatus status;
     protected Duration duration;
     protected LocalDateTime startTime;
+    protected String type = this.getClass().getSimpleName();
 
     public Task(String title, String description) {
         this.title = title;
@@ -83,14 +83,6 @@ public class Task {
         this.startTime = localDateTime;
     }
 
-    public String getTime() {
-        return getStartTime().isPresent() && getDuration().isPresent() && getEndTime().isPresent() ?
-                "Start: " + startTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss"))
-                + ", Duration: " + duration.toMinutes() + " min., "
-                + "End time: " + getEndTime().get().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss")) :
-                "No time";
-    }
-
     public void setId(int id) {
         this.id = id;
     }
@@ -115,13 +107,13 @@ public class Task {
     public String toString() {
         List<String> list = new ArrayList<>();
         list.add(Integer.toString(id));
-        list.add(getClass().getSimpleName().toUpperCase());
+        list.add(type);
         list.add(title);
         list.add(status.toString());
         list.add(description);
         if (this instanceof Subtask subtask) list.add(Integer.toString(subtask.getIdEpic()));
-        getStartTime().ifPresent(time -> list.add(Long.toString(time.toInstant(ZoneOffset.UTC).toEpochMilli())));
-        getDuration().ifPresent(time -> list.add(Long.toString(time.toMillis())));
+        getStartTime().ifPresentOrElse(time -> list.add(time.format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss"))), () -> list.add("null"));
+        getDuration().ifPresentOrElse(time -> list.add(Long.toString(time.toMinutes())), () -> list.add("null"));
         return String.join(",", list);
     }
 
@@ -144,4 +136,6 @@ public class Task {
     public String getDescription() {
         return description;
     }
+
+    public String getType() { return type; }
 }

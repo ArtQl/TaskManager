@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,9 +32,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
     void shouldAddTask() {
         taskManager.addTask(task);
         assertFalse(taskManager.getTasks().isEmpty(), "Task not added");
-
-        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("1", "1", TaskStatus.NEW, 1)), "Add Task With ID");
-
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(new Task("1", "1", TaskStatus.NEW, 1)), "Add Task With the same ID");
         assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(task), "Add same task");
     }
 
@@ -105,7 +104,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
         taskManager.addTask(epic);
         taskManager.addTask(new Subtask("1", "1", 2));
         taskManager.removeAllTasks();
-        assertThrows(RuntimeException.class, () -> taskManager.getMapTasks(), "tasks no empty");
+        assertTrue(taskManager.getMapTasks().isEmpty());
     }
 
     @Test
@@ -146,7 +145,7 @@ abstract public class TaskManagerTest<T extends TaskManager> {
         taskManager.addTask(task);
         taskManager.removeTaskById(1);
         assertThrows(RuntimeException.class, () -> taskManager.getTasks(), "tasks no empty");
-        assertThrows(RuntimeException.class, () -> taskManager.getMapTasks(), "tasksMap no empty");
+        assertTrue(taskManager.getMapTasks().isEmpty());
         assertTrue(taskManager.getHistoryManager().getHistory().isEmpty());
     }
 
@@ -206,24 +205,27 @@ abstract public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldGetPrioritizeTasks() {
+        TreeSet<Task> treeSet = taskManager.getPrioritizedTasks();
         taskManager.addTask(new Task("task3", "desc"));
         taskManager.addTask(new Task("task3", "desc", LocalDateTime.of(2024, 10, 10, 10, 0, 0), Duration.ofHours(1)));
 
         taskManager.addTask(new Task("task1", "desc"));
-        taskManager.updateTimeTask(taskManager.getTaskById(3), LocalDateTime.of(2024, 10, 15, 10, 0, 0), Duration.ofDays(1));
+        taskManager.updateTask(new Task("task1", "desjc", TaskStatus.NEW, 3, LocalDateTime.of(2024, 10, 15, 10, 0, 0), Duration.ofDays(1)));
 
         taskManager.addTask(new Task("task2", "desc"));
-        taskManager.updateTimeTask(taskManager.getTaskById(4), (LocalDateTime.of(2024, 12, 10, 10, 0, 0)), Duration.ofDays(2));
+        taskManager.updateTask(new Task("task2", "dejsc", TaskStatus.IN_PROGRESS, 4, LocalDateTime.of(2024, 12, 10, 10, 0, 0), Duration.ofDays(2)));
 
         taskManager.addTask(epic);
         taskManager.addTask(new Subtask("Sub1", "desc", 5));
-        taskManager.updateTimeTask(taskManager.getTaskById(6), LocalDateTime.of(2024, 9, 15, 10, 0, 0), Duration.ofDays(3));
+        taskManager.updateTask(new Subtask("Sub1", "dejsc", TaskStatus.NEW, 6, 5, LocalDateTime.of(2024, 9, 15, 10, 0, 0), Duration.ofDays(3)));
 
         taskManager.addTask(new Subtask("Sub2", "desc", 5));
-        taskManager.updateTimeTask(taskManager.getTaskById(7), LocalDateTime.of(2024, 9, 10, 10, 0, 0), Duration.ofDays(4));
+        taskManager.updateTask(new Subtask("Sub2", "djesc", TaskStatus.NEW, 7, 5, LocalDateTime.of(2024, 9, 10, 10, 0, 0), Duration.ofDays(4)));
 
         taskManager.addTask(new Subtask("Sub3", "desc", 5));
-        taskManager.addTask(new Task("task1", "desc", LocalDateTime.of(2023, 10, 10, 10, 0, 0), Duration.ofHours(10)));
+        taskManager.addTask(new Task("task1", "desjc", LocalDateTime.of(2023, 10, 10, 10, 0, 0), Duration.ofHours(10)));
+
+        treeSet.forEach(System.out::println);
 
         assertEquals(9, taskManager.getPrioritizedTasks().size());
         assertEquals(taskManager.getTaskById(9), taskManager.getPrioritizedTasks().getFirst());

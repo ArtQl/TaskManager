@@ -3,6 +3,8 @@
 *.xml
 *.iml
 *.class
+/out
+/.idea
 # Editor-based HTTP Client requests
 /httpRequests/
 # Datasource local storage ignored files

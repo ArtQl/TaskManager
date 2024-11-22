@@ -17,11 +17,9 @@ public interface TaskManager {
 
     void updateTask(Task task);
 
-    void updateTimeTask(Task task, LocalDateTime localDateTime,  Duration duration);
-
     void removeAllTasks();
 
-    void removeTaskById(int id);
+    Task removeTaskById(int id);
 
     Task getTaskById(int id);
 
@@ -45,4 +43,7 @@ public interface TaskManager {
 
     TreeSet<Task> getPrioritizedTasks();
 
+    <T extends Task> Map<Integer, Task> getTasksByType(Class<T> type);
+
+    void checkSubtasks();
 }

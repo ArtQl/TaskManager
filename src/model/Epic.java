@@ -12,8 +12,16 @@ public class Epic extends Task {
         super(title, description);
     }
 
+    public Epic(String title, String description, LocalDateTime startTime, Duration duration) {
+        super(title, description, startTime, duration);
+    }
+
     public Epic(String title, String description, TaskStatus status, int id) {
         super(title, description, status, id);
+    }
+
+    public Epic(String title, String description, TaskStatus status, Integer id, LocalDateTime startTime, Duration duration) {
+        super(title, description, status, id, startTime, duration);
     }
 
     @Override
@@ -58,6 +66,8 @@ public class Epic extends Task {
     }
 
     public void updateStatus() {
+        startTime = getStartTime().orElse(null);
+        duration = getDuration().orElse(null);
         if (subtaskList.isEmpty()) {
             setStatus(TaskStatus.NEW);
             return;
