@@ -4,6 +4,7 @@
 *.iml
 *.class
 /out
+/lib
 /.idea
 # Editor-based HTTP Client requests
 /httpRequests/
